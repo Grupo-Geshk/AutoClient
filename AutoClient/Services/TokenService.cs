@@ -21,6 +21,7 @@ public class TokenService : ITokenService
         {
             new Claim(JwtRegisteredClaimNames.Sub, workshop.Id.ToString()),
             new Claim("workshop_id", workshop.Id.ToString()),
+            new Claim("subdomain", workshop.Subdomain), // ← nuevo claim
             new Claim("role", "admin")
         };
 

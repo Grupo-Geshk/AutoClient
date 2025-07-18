@@ -1,0 +1,147 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Gio\\source\\repos\\AutoClient\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\dtos\\vehicles\\vehicledto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\dtos\\vehicles\\vehicledto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\controllers\\vehiclescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\vehiclescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\models\\vehicle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\models\\vehicle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\services\\tokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\services\\tokenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\.env||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\.env||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "VehicleDto.cs",
+              "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\DTOs\\Vehicles\\VehicleDto.cs",
+              "RelativeDocumentMoniker": "AutoClient\\DTOs\\Vehicles\\VehicleDto.cs",
+              "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\DTOs\\Vehicles\\VehicleDto.cs",
+              "RelativeToolTip": "AutoClient\\DTOs\\Vehicles\\VehicleDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAUAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-18T17:21:45.594Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1517695089:0:{83107a3e-496a-485e-b455-16ddb978e55e}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ClientsController.cs",
+              "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\ClientsController.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Controllers\\ClientsController.cs",
+              "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\ClientsController.cs",
+              "RelativeToolTip": "AutoClient\\Controllers\\ClientsController.cs",
+              "ViewState": "AgIAADUAAAAAAAAAAAAgwD0AAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-18T17:18:09.483Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "VehiclesController.cs",
+              "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\VehiclesController.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Controllers\\VehiclesController.cs",
+              "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\VehiclesController.cs",
+              "RelativeToolTip": "AutoClient\\Controllers\\VehiclesController.cs",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAiwGwAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-18T16:14:05.353Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Vehicle.cs",
+              "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Models\\Vehicle.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Models\\Vehicle.cs",
+              "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Models\\Vehicle.cs",
+              "RelativeToolTip": "AutoClient\\Models\\Vehicle.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-18T17:12:20.047Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "TokenService.cs",
+              "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Services\\TokenService.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Services\\TokenService.cs",
+              "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Services\\TokenService.cs",
+              "RelativeToolTip": "AutoClient\\Services\\TokenService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAABFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-18T17:02:19.221Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": ".env",
+              "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\.env",
+              "RelativeDocumentMoniker": "AutoClient\\.env",
+              "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\.env",
+              "RelativeToolTip": "AutoClient\\.env",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-07-18T16:16:41.092Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\appsettings.json",
+              "RelativeDocumentMoniker": "AutoClient\\appsettings.json",
+              "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\appsettings.json",
+              "RelativeToolTip": "AutoClient\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-07-18T15:47:26.057Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

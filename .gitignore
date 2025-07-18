@@ -1,0 +1,10 @@
+bin/
+obj/
+.env
+appsettings.Development.json
+appsettings.Production.json
+*.user
+*.db
+*.sqlite
+.vscode/
+AutoClient.http

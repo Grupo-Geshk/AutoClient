@@ -9,4 +9,7 @@ public class ServiceResponseDto
     public string? ServiceType { get; set; }
     public string? Description { get; set; }
     public string? MechanicNotes { get; set; }
+    public string PlateNumber { get; set; } = default!;
+    public string ClientName { get; set; } = default!;
+    public DateTime? ExitDate { get; set; }
 }

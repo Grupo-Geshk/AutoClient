@@ -166,7 +166,10 @@ public class ServicesController : ControllerBase
                 Mileage = s.MileageAtService,
                 ServiceType = s.ServiceType,
                 Description = s.Description,
-                MechanicNotes = s.MechanicNotes
+                MechanicNotes = s.MechanicNotes,
+                PlateNumber = s.Vehicle.PlateNumber,
+                ClientName = s.Vehicle.Client.Name,
+                ExitDate = s.ExitDate
             })
             .ToListAsync();
 

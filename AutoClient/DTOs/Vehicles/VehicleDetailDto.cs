@@ -10,4 +10,5 @@ public class VehicleDetailDto
     public string Color { get; set; }
     public string? VIN { get; set; }
     public int? MileageAtRegistration { get; set; }
+    public string ClientName { get; set; } = default!;
 }

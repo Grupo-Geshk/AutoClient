@@ -147,6 +147,31 @@ public class ServicesController : ControllerBase
             MechanicNotes = service.MechanicNotes
         });
     }
+    // GET /services - Lista completa (historial general filtrable en frontend)
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ServiceResponseDto>>> GetAllServices()
+    {
+        var workshopId = GetCurrentWorkshopId();
+
+        var services = await _context.Services
+            .Include(s => s.Vehicle)
+                .ThenInclude(v => v.Client)
+            .Where(s => s.Vehicle.Client.WorkshopId == workshopId)
+            .OrderByDescending(s => s.Date)
+            .Select(s => new ServiceResponseDto
+            {
+                Id = s.Id,
+                VehicleId = s.VehicleId,
+                EntryDate = s.Date,
+                Mileage = s.MileageAtService,
+                ServiceType = s.ServiceType,
+                Description = s.Description,
+                MechanicNotes = s.MechanicNotes
+            })
+            .ToListAsync();
+
+        return Ok(services);
+    }
 
     private Guid GetCurrentWorkshopId()
     {

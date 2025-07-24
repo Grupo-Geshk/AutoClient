@@ -85,7 +85,8 @@ public class VehiclesController : ControllerBase
             Year = vehicle.Year,
             Color = vehicle.Color,
             VIN = vehicle.VIN,
-            MileageAtRegistration = vehicle.MileageAtRegistration
+            MileageAtRegistration = vehicle.MileageAtRegistration,
+            ClientName = vehicle.Client.Name
         });
     }
     // GET vehiculos, con lista de busqueda opcional

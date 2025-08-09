@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\Gio\\source\\repos\\AutoClient\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\controllers\\workerscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\workerscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -31,10 +35,6 @@
       "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\models\\invoice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -50,11 +50,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": ".env",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\.env",
               "RelativeDocumentMoniker": "AutoClient\\.env",
@@ -63,8 +63,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2025-08-09T18:37:36.7Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Bookmark",
@@ -76,20 +75,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "WorkersController.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\WorkersController.cs",
               "RelativeDocumentMoniker": "AutoClient\\Controllers\\WorkersController.cs",
               "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\WorkersController.cs",
               "RelativeToolTip": "AutoClient\\Controllers\\WorkersController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHsAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAACcAAAAAAAAAAAAYwDsAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-09T20:13:46.395Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "WorkerOverviewDto.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\DTOs\\Workers\\WorkerOverviewDto.cs",
               "RelativeDocumentMoniker": "AutoClient\\DTOs\\Workers\\WorkerOverviewDto.cs",
@@ -97,12 +96,11 @@
               "RelativeToolTip": "AutoClient\\DTOs\\Workers\\WorkerOverviewDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T20:13:35.783Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T20:13:35.783Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "SmtpSettings.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Settings\\SmtpSettings.cs",
               "RelativeDocumentMoniker": "AutoClient\\Settings\\SmtpSettings.cs",
@@ -110,12 +108,11 @@
               "RelativeToolTip": "AutoClient\\Settings\\SmtpSettings.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T19:18:33.416Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T19:18:33.416Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "Invoice.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Models\\Invoice.cs",
               "RelativeDocumentMoniker": "AutoClient\\Models\\Invoice.cs",
@@ -123,18 +120,17 @@
               "RelativeToolTip": "AutoClient\\Models\\Invoice.cs",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T19:08:28.463Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T19:08:28.463Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Program.cs",
               "RelativeDocumentMoniker": "AutoClient\\Program.cs",
               "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Program.cs",
               "RelativeToolTip": "AutoClient\\Program.cs",
-              "ViewState": "AgIAAAIAAAAAAAAAAAAIwA0AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAFQAAAAAAAAAAAAqwGMAAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-09T18:23:13.82Z",
               "EditorCaption": ""
@@ -149,12 +145,11 @@
               "RelativeToolTip": "AutoClient\\Data\\ApplicationDbContext.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:19:49.758Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:19:49.758Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "InvoicesController.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\InvoicesController.cs",
               "RelativeDocumentMoniker": "AutoClient\\Controllers\\InvoicesController.cs",
@@ -162,12 +157,11 @@
               "RelativeToolTip": "AutoClient\\Controllers\\InvoicesController.cs",
               "ViewState": "AgIAAAwAAAAAAAAAAAAwwB8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:03:51.058Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:03:51.058Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "InvoiceService.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Services\\InvoiceService.cs",
               "RelativeDocumentMoniker": "AutoClient\\Services\\InvoiceService.cs",
@@ -175,8 +169,7 @@
               "RelativeToolTip": "AutoClient\\Services\\InvoiceService.cs",
               "ViewState": "AgIAAHQBAAAAAAAAAAAgwJEBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:03:10.586Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:03:10.586Z"
             },
             {
               "$type": "Document",
@@ -188,8 +181,7 @@
               "RelativeToolTip": "AutoClient\\Services\\IInvoiceService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:02:55.94Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:02:55.94Z"
             }
           ]
         }

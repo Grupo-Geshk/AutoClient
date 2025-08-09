@@ -50,7 +50,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
@@ -63,8 +63,15 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2025-08-09T18:37:36.7Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1517695089:0:{83107a3e-496a-485e-b455-16ddb978e55e}"
             },
             {
               "$type": "Document",
@@ -74,7 +81,7 @@
               "RelativeDocumentMoniker": "AutoClient\\Controllers\\WorkersController.cs",
               "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\WorkersController.cs",
               "RelativeToolTip": "AutoClient\\Controllers\\WorkersController.cs",
-              "ViewState": "AgIAAFsAAAAAAAAAAAAqwHsAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-09T20:13:46.395Z",
               "EditorCaption": ""
@@ -89,16 +96,7 @@
               "RelativeToolTip": "AutoClient\\DTOs\\Workers\\WorkerOverviewDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T20:13:35.783Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:1517695089:0:{83107a3e-496a-485e-b455-16ddb978e55e}"
+              "WhenOpened": "2025-08-09T20:13:35.783Z"
             },
             {
               "$type": "Document",
@@ -110,8 +108,7 @@
               "RelativeToolTip": "AutoClient\\Settings\\SmtpSettings.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T19:18:33.416Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T19:18:33.416Z"
             },
             {
               "$type": "Document",
@@ -123,8 +120,7 @@
               "RelativeToolTip": "AutoClient\\Models\\Invoice.cs",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T19:08:28.463Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T19:08:28.463Z"
             },
             {
               "$type": "Document",
@@ -136,8 +132,7 @@
               "RelativeToolTip": "AutoClient\\Program.cs",
               "ViewState": "AgIAAAIAAAAAAAAAAAAIwA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:23:13.82Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:23:13.82Z"
             },
             {
               "$type": "Document",
@@ -149,8 +144,7 @@
               "RelativeToolTip": "AutoClient\\Data\\ApplicationDbContext.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:19:49.758Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:19:49.758Z"
             },
             {
               "$type": "Document",
@@ -162,8 +156,7 @@
               "RelativeToolTip": "AutoClient\\Controllers\\InvoicesController.cs",
               "ViewState": "AgIAAAwAAAAAAAAAAAAwwB8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:03:51.058Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:03:51.058Z"
             },
             {
               "$type": "Document",
@@ -175,8 +168,7 @@
               "RelativeToolTip": "AutoClient\\Services\\InvoiceService.cs",
               "ViewState": "AgIAAHQBAAAAAAAAAAAgwJEBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:03:10.586Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:03:10.586Z"
             },
             {
               "$type": "Document",
@@ -188,8 +180,7 @@
               "RelativeToolTip": "AutoClient\\Services\\IInvoiceService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-09T18:02:55.94Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-09T18:02:55.94Z"
             }
           ]
         }

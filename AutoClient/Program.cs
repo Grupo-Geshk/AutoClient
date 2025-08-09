@@ -1,4 +1,4 @@
-using AutoClient.Data;
+﻿using AutoClient.Data;
 using AutoClient.Services;
 using AutoClient.Settings;
 using FluentValidation.AspNetCore;
@@ -10,19 +10,19 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- CONFIGURACIONES ---
+// === CONFIGURACIONES BASE ===
 DotNetEnv.Env.Load();
 
-var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection"); 
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
-
 
 builder.Services.AddControllers()
     .AddFluentValidation(config =>
         config.RegisterValidatorsFromAssemblyContaining<Program>());
 
+// SMTP
 builder.Services.Configure<SmtpSettings>(options =>
 {
     options.Host = Environment.GetEnvironmentVariable("Smtp__Host");
@@ -33,12 +33,13 @@ builder.Services.Configure<SmtpSettings>(options =>
     options.SenderEmail = Environment.GetEnvironmentVariable("Smtp__SenderEmail");
 });
 
+// JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         var key = Environment.GetEnvironmentVariable("Jwt__Key");
         var issuer = Environment.GetEnvironmentVariable("Jwt__Issuer");
-        Console.WriteLine($"KEY: {key}");
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -52,10 +53,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Servicios propios
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "AutoClient API", Version = "v1" });
@@ -67,7 +68,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Add your token JWT",
+        Description = "Add your JWT token",
         Reference = new OpenApiReference
         {
             Id = JwtBearerDefaults.AuthenticationScheme,
@@ -78,22 +79,30 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityDefinition(jwtScheme.Reference.Id, jwtScheme);
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        { jwtScheme, new string[] { } }
-    });
-});
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        { jwtScheme, Array.Empty<string>() }
     });
 });
 
+// === CORS ===
+// Usa env var: AllowedOrigins=http://localhost:5173,https://autoclientst.grupogeshk.com
+var allowedOrigins = (Environment.GetEnvironmentVariable("AllowedOrigins")
+                     ?? "http://localhost:5173,https://autoclientst.grupogeshk.com")
+                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontends", p =>
+        p.WithOrigins(allowedOrigins)
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .WithExposedHeaders("Content-Disposition")
+         .AllowCredentials() // no se pasa true/false aquí
+    );
+});
 
 var app = builder.Build();
 
+// === PIPELINE ===
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -101,11 +110,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
+
+// ⚠️ CORS debe ir ANTES de Auth y antes de MapControllers
+app.UseCors("Frontends");
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors();
+
+// Preflight helper (por si algún proxy molesta)
+app.MapMethods("{*path}", new[] { "OPTIONS" }, () => Results.Ok());
 
 app.MapControllers();
 

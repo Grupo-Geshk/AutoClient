@@ -11,4 +11,7 @@ public class VehicleDetailDto
     public string? VIN { get; set; }
     public int? MileageAtRegistration { get; set; }
     public string ClientName { get; set; } = default!;
+    public string? ImageUrl { get; set; }
+    public int? LastMileage { get; set; } // basado en el último servicio
+
 }

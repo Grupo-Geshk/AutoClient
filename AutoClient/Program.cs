@@ -1,5 +1,6 @@
 using AutoClient.Data;
 using AutoClient.Services;
+using AutoClient.Settings;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers()
     .AddFluentValidation(config =>
         config.RegisterValidatorsFromAssemblyContaining<Program>());
+
+builder.Services.Configure<SmtpSettings>(options =>
+{
+    options.Host = Environment.GetEnvironmentVariable("Smtp__Host");
+    options.Port = int.Parse(Environment.GetEnvironmentVariable("Smtp__Port") ?? "587");
+    options.Username = Environment.GetEnvironmentVariable("Smtp__Username");
+    options.Password = Environment.GetEnvironmentVariable("Smtp__Password");
+    options.SenderName = Environment.GetEnvironmentVariable("Smtp__SenderName");
+    options.SenderEmail = Environment.GetEnvironmentVariable("Smtp__SenderEmail");
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -44,6 +55,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "AutoClient API", Version = "v1" });
@@ -90,6 +102,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors();

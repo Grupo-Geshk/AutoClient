@@ -1,5 +1,4 @@
 ﻿using AutoClient.Data;
-using AutoClient.DTOs.Clients;
 using AutoClient.DTOs.Vehicles;
 using AutoClient.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +19,7 @@ public class VehiclesController : ControllerBase
         _context = context;
     }
 
-    // POST /vehicles - Registrar vehículo
+    // POST /vehicles
     [HttpPost]
     public async Task<ActionResult<VehicleDetailDto>> CreateVehicle([FromBody] CreateVehicleDto dto)
     {
@@ -42,7 +41,8 @@ public class VehiclesController : ControllerBase
             Color = dto.Color,
             VIN = dto.VIN,
             MileageAtRegistration = dto.MileageAtRegistration,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ImageUrl = dto.ImageUrl,
         };
 
         _context.Vehicles.Add(vehicle);
@@ -57,7 +57,10 @@ public class VehiclesController : ControllerBase
             Year = vehicle.Year,
             Color = vehicle.Color,
             VIN = vehicle.VIN,
-            MileageAtRegistration = vehicle.MileageAtRegistration
+            MileageAtRegistration = vehicle.MileageAtRegistration,
+            ImageUrl = vehicle.ImageUrl,
+            ClientName = client.Name,
+            LastMileage = null
         });
     }
 
@@ -69,12 +72,17 @@ public class VehiclesController : ControllerBase
 
         var vehicle = await _context.Vehicles
             .Include(v => v.Client)
-            .Where(v => v.PlateNumber.ToLower() == plate.ToLower()
-                        && v.Client.WorkshopId == workshopId)
+            .Where(v => v.PlateNumber.ToLower() == plate.ToLower() && v.Client.WorkshopId == workshopId)
             .FirstOrDefaultAsync();
 
         if (vehicle == null)
             return NotFound();
+
+        var lastMileage = await _context.Services
+            .Where(s => s.VehicleId == vehicle.Id)
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => s.MileageAtService)
+            .FirstOrDefaultAsync();
 
         return Ok(new VehicleDetailDto
         {
@@ -86,17 +94,20 @@ public class VehiclesController : ControllerBase
             Color = vehicle.Color,
             VIN = vehicle.VIN,
             MileageAtRegistration = vehicle.MileageAtRegistration,
-            ClientName = vehicle.Client.Name
+            ImageUrl = vehicle.ImageUrl,
+            ClientName = vehicle.Client.Name,
+            LastMileage = lastMileage
         });
     }
-    // GET vehiculos, con lista de busqueda opcional
+
+    // GET /vehicles
     [HttpGet("vehicles")]
     public async Task<ActionResult<IEnumerable<VehicleDto>>> GetVehicles([FromQuery] string? search)
     {
         var workshopId = GetCurrentWorkshopId();
 
         var query = _context.Vehicles
-            .Where(v => v.Client.WorkshopId == workshopId); // accedemos a través del cliente
+            .Where(v => v.Client.WorkshopId == workshopId);
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -114,13 +125,15 @@ public class VehiclesController : ControllerBase
                 Model = v.Model,
                 Brand = v.Brand,
                 Year = v.Year,
-                ClientId = v.ClientId
+                Color = v.Color,
+                ImageUrl= v.ImageUrl,
+                ClientId = v.ClientId,
+
             })
             .ToListAsync();
 
         return Ok(results);
     }
-
 
     // GET /vehicles/by-client/{clientId}
     [HttpGet("by-client/{clientId}")]
@@ -145,8 +158,16 @@ public class VehiclesController : ControllerBase
                 Year = v.Year,
                 Color = v.Color,
                 VIN = v.VIN,
-                MileageAtRegistration = v.MileageAtRegistration
-            }).ToListAsync();
+                MileageAtRegistration = v.MileageAtRegistration,
+                ImageUrl = v.ImageUrl,
+                ClientName = client.Name,
+                LastMileage = _context.Services
+                    .Where(s => s.VehicleId == v.Id)
+                    .OrderByDescending(s => s.CreatedAt)
+                    .Select(s => s.MileageAtService)
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
 
         return Ok(vehicles);
     }
@@ -170,6 +191,7 @@ public class VehiclesController : ControllerBase
         vehicle.Color = dto.Color;
         vehicle.VIN = dto.VIN;
         vehicle.MileageAtRegistration = dto.MileageAtRegistration;
+        vehicle.ImageUrl = dto.ImageUrl;
 
         await _context.SaveChangesAsync();
         return NoContent();

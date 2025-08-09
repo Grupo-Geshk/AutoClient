@@ -24,6 +24,8 @@ public class Vehicle
     [Required]
     [MaxLength(50)]
     public string Model { get; set; }
+    [MaxLength(300)]
+    public string? ImageUrl { get; set; }
 
     public int Year { get; set; }
 

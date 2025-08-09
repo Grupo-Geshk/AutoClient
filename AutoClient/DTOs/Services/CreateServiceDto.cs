@@ -8,4 +8,6 @@ public class CreateServiceDto
     public string? ServiceType { get; set; }
     public string? Description { get; set; }
     public string? MechanicNotes { get; set; }
+    public Guid WorkerId { get; set; }
+
 }

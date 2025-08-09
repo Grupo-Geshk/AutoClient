@@ -31,4 +31,5 @@ public class Workshop
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Client> Clients { get; set; }
+    public ICollection<Worker> Workers { get; set; }
 }

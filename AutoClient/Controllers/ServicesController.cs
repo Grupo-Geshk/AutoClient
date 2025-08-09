@@ -19,7 +19,6 @@ public class ServicesController : ControllerBase
         _context = context;
     }
 
-    // POST /services - Registrar entrada del vehículo
     [HttpPost]
     public async Task<ActionResult<ServiceResponseDto>> CreateService([FromBody] CreateServiceDto dto)
     {
@@ -32,9 +31,16 @@ public class ServicesController : ControllerBase
         if (vehicle == null)
             return NotFound(new { message = "Vehicle not found or does not belong to this workshop." });
 
+        var worker = await _context.Workers
+            .FirstOrDefaultAsync(w => w.Id == dto.WorkerId && w.WorkshopId == workshopId);
+
+        if (worker == null)
+            return NotFound(new { message = "Worker not found or does not belong to this workshop." });
+
         var service = new Service
         {
             VehicleId = dto.VehicleId,
+            WorkerId = dto.WorkerId,
             Date = dto.EntryDate ?? DateTime.UtcNow,
             MileageAtService = dto.Mileage,
             ServiceType = dto.ServiceType,
@@ -55,11 +61,14 @@ public class ServicesController : ControllerBase
             Mileage = service.MileageAtService,
             ServiceType = service.ServiceType,
             Description = service.Description,
-            MechanicNotes = service.MechanicNotes
+            MechanicNotes = service.MechanicNotes,
+            PlateNumber = vehicle.PlateNumber,
+            ClientName = vehicle.Client.Name,
+            ExitDate = service.ExitDate,
+            WorkerName = worker.Name
         });
     }
 
-    // PUT /services/{id}/complete - Completar entrega
     [HttpPut("{id}/complete")]
     public async Task<IActionResult> CompleteService(Guid id, [FromBody] CompleteServiceDto dto)
     {
@@ -68,6 +77,7 @@ public class ServicesController : ControllerBase
         var service = await _context.Services
             .Include(s => s.Vehicle)
                 .ThenInclude(v => v.Client)
+            .Include(s => s.Worker)
             .FirstOrDefaultAsync(s => s.Id == id && s.Vehicle.Client.WorkshopId == workshopId);
 
         if (service == null)
@@ -78,21 +88,12 @@ public class ServicesController : ControllerBase
         service.MechanicNotes += $"\nFinal Notes: {dto.FinalObservations}";
         service.CreatedBy = dto.DeliveredBy ?? service.CreatedBy;
         service.Description += $"\nEstado Final: {dto.VehicleState}";
-        service.Date = service.Date; 
-        service.Date = service.Date; 
-        service.CreatedAt = service.CreatedAt;
-        service.Vehicle = service.Vehicle;
-        service.VehicleId = service.VehicleId;
-
-        // Salida real
         service.ExitDate = dto.ExitDate ?? DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-
         return NoContent();
     }
 
-    // GET /services/by-vehicle/{id} - Historial por vehículo
     [HttpGet("by-vehicle/{vehicleId}")]
     public async Task<ActionResult<IEnumerable<ServiceResponseDto>>> GetHistoryByVehicle(Guid vehicleId)
     {
@@ -106,6 +107,7 @@ public class ServicesController : ControllerBase
             return NotFound();
 
         var services = await _context.Services
+            .Include(s => s.Worker)
             .Where(s => s.VehicleId == vehicleId)
             .OrderByDescending(s => s.Date)
             .Select(s => new ServiceResponseDto
@@ -116,13 +118,16 @@ public class ServicesController : ControllerBase
                 Mileage = s.MileageAtService,
                 ServiceType = s.ServiceType,
                 Description = s.Description,
-                MechanicNotes = s.MechanicNotes
+                MechanicNotes = s.MechanicNotes,
+                PlateNumber = vehicle.PlateNumber,
+                ClientName = vehicle.Client.Name,
+                ExitDate = s.ExitDate,
+                WorkerName = s.Worker.Name
             }).ToListAsync();
 
         return Ok(services);
     }
 
-    // GET /services/{id} - Ver detalles de un servicio
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponseDto>> GetServiceById(Guid id)
     {
@@ -131,6 +136,7 @@ public class ServicesController : ControllerBase
         var service = await _context.Services
             .Include(s => s.Vehicle)
                 .ThenInclude(v => v.Client)
+            .Include(s => s.Worker)
             .FirstOrDefaultAsync(s => s.Id == id && s.Vehicle.Client.WorkshopId == workshopId);
 
         if (service == null)
@@ -144,10 +150,14 @@ public class ServicesController : ControllerBase
             Mileage = service.MileageAtService,
             ServiceType = service.ServiceType,
             Description = service.Description,
-            MechanicNotes = service.MechanicNotes
+            MechanicNotes = service.MechanicNotes,
+            PlateNumber = service.Vehicle.PlateNumber,
+            ClientName = service.Vehicle.Client.Name,
+            ExitDate = service.ExitDate,
+            WorkerName = service.Worker.Name
         });
     }
-    // GET /services - Lista completa (historial general filtrable en frontend)
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ServiceResponseDto>>> GetAllServices()
     {
@@ -156,6 +166,7 @@ public class ServicesController : ControllerBase
         var services = await _context.Services
             .Include(s => s.Vehicle)
                 .ThenInclude(v => v.Client)
+            .Include(s => s.Worker)
             .Where(s => s.Vehicle.Client.WorkshopId == workshopId)
             .OrderByDescending(s => s.Date)
             .Select(s => new ServiceResponseDto
@@ -168,8 +179,13 @@ public class ServicesController : ControllerBase
                 Description = s.Description,
                 MechanicNotes = s.MechanicNotes,
                 PlateNumber = s.Vehicle.PlateNumber,
+                Brand = s.Vehicle.Brand,
+                Model = s.Vehicle.Model,
+                Year = s.Vehicle.Year,
                 ClientName = s.Vehicle.Client.Name,
-                ExitDate = s.ExitDate
+                ExitDate = s.ExitDate,
+                WorkerName = s.Worker.Name,
+
             })
             .ToListAsync();
 

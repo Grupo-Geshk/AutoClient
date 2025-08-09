@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AutoClient.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250718150110_AddExitDateToService")]
-    partial class AddExitDateToService
+    [Migration("20250804214227_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,12 +38,8 @@ namespace AutoClient.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("DNI")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -111,9 +107,14 @@ namespace AutoClient.Migrations
                     b.Property<Guid>("VehicleId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("WorkerId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("VehicleId");
+
+                    b.HasIndex("WorkerId");
 
                     b.ToTable("Services");
                 });
@@ -140,6 +141,10 @@ namespace AutoClient.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<int?>("MileageAtRegistration")
                         .HasColumnType("integer");
 
@@ -165,6 +170,45 @@ namespace AutoClient.Migrations
                     b.HasIndex("ClientId");
 
                     b.ToTable("Vehicles");
+                });
+
+            modelBuilder.Entity("AutoClient.Models.Worker", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("WorkshopId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkshopId");
+
+                    b.ToTable("Workers");
                 });
 
             modelBuilder.Entity("AutoClient.Models.Workshop", b =>
@@ -229,7 +273,15 @@ namespace AutoClient.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("AutoClient.Models.Worker", "Worker")
+                        .WithMany()
+                        .HasForeignKey("WorkerId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
+
                     b.Navigation("Vehicle");
+
+                    b.Navigation("Worker");
                 });
 
             modelBuilder.Entity("AutoClient.Models.Vehicle", b =>
@@ -241,6 +293,17 @@ namespace AutoClient.Migrations
                         .IsRequired();
 
                     b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("AutoClient.Models.Worker", b =>
+                {
+                    b.HasOne("AutoClient.Models.Workshop", "Workshop")
+                        .WithMany("Workers")
+                        .HasForeignKey("WorkshopId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workshop");
                 });
 
             modelBuilder.Entity("AutoClient.Models.Client", b =>
@@ -256,6 +319,8 @@ namespace AutoClient.Migrations
             modelBuilder.Entity("AutoClient.Models.Workshop", b =>
                 {
                     b.Navigation("Clients");
+
+                    b.Navigation("Workers");
                 });
 #pragma warning restore 612, 618
         }

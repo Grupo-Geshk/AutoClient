@@ -11,6 +11,11 @@ public class Service
     [Required]
     [ForeignKey("Vehicle")]
     public Guid VehicleId { get; set; }
+    [Required]
+    [ForeignKey("Worker")]
+    public Guid? WorkerId { get; set; }
+    public Worker? Worker { get; set; } // <= nota el signo de pregunta
+
     public Vehicle Vehicle { get; set; }
 
     [Required]

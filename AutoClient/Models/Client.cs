@@ -20,11 +20,11 @@ public class Client
     [MaxLength(20)]
     public string Phone { get; set; }
 
-    [MaxLength(50)]
-    public string DNI { get; set; }
-
+  
+    [Required]
     [MaxLength(100)]
-    public string? Email { get; set; }
+    [EmailAddress]
+    public string Email { get; set; }
 
     [MaxLength(200)]
     public string? Address { get; set; }

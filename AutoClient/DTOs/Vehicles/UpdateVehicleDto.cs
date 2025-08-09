@@ -8,4 +8,5 @@ public class UpdateVehicleDto
     public string Color { get; set; }
     public string? VIN { get; set; }
     public int? MileageAtRegistration { get; set; }
+    public string? ImageUrl { get; set; }
 }

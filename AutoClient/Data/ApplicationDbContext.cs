@@ -11,6 +11,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Client> Clients { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Service> Services { get; set; }
+    public DbSet<Worker> Workers { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<InvoiceItem> InvoiceItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,5 +36,18 @@ public class ApplicationDbContext : DbContext
             .WithOne(s => s.Vehicle)
             .HasForeignKey(s => s.VehicleId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Workshop>()
+            .HasMany(w => w.Workers)
+            .WithOne(worker => worker.Workshop)
+            .HasForeignKey(worker => worker.WorkshopId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Worker>()
+            .HasMany<Service>()
+            .WithOne(s => s.Worker)
+            .HasForeignKey(s => s.WorkerId)
+            .OnDelete(DeleteBehavior.SetNull);  
+
+
     }
 }

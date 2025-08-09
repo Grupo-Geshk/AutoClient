@@ -38,7 +38,6 @@ public class ClientsController : ControllerBase
             WorkshopId = workshopId,
             Name = dto.Name,
             Phone = dto.Phone,
-            DNI = dto.DNI,
             Email = dto.Email,
             Address = dto.Address,
             CreatedAt = DateTime.UtcNow
@@ -51,8 +50,7 @@ public class ClientsController : ControllerBase
         {
             Id = client.Id,
             Name = client.Name,
-            Phone = client.Phone,
-            DNI = client.DNI
+            Phone = client.Phone
         });
     }
     // Lista con búsqueda opcional
@@ -68,7 +66,7 @@ public class ClientsController : ControllerBase
         {
             query = query.Where(c =>
                 c.Name.Contains(search) ||
-                c.DNI.Contains(search));
+                c.Email.Contains(search));
         }
 
         var results = await query
@@ -77,7 +75,8 @@ public class ClientsController : ControllerBase
                 Id = c.Id,
                 Name = c.Name,
                 Phone = c.Phone,
-                DNI = c.DNI
+                Email= c.Email,
+                
             })
             .ToListAsync();
 
@@ -96,7 +95,7 @@ public class ClientsController : ControllerBase
             return NotFound();
 
         var vehicles = await _context.Vehicles
-            .Where(v => v.ClientId == id)
+            .Where(v => v.ClientId == id && v.Client.WorkshopId == workshopId)
             .Select(v => new VehicleDto
             {
                 Id = v.Id,
@@ -127,7 +126,6 @@ public class ClientsController : ControllerBase
             Id = client.Id,
             Name = client.Name,
             Phone = client.Phone,
-            DNI = client.DNI,
             Email = client.Email,
             Address = client.Address
         };
@@ -148,7 +146,6 @@ public class ClientsController : ControllerBase
 
         client.Name = dto.Name;
         client.Phone = dto.Phone;
-        client.DNI = dto.DNI;
         client.Email = dto.Email;
         client.Address = dto.Address;
 

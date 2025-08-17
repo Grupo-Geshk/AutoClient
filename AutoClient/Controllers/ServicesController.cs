@@ -84,6 +84,8 @@ public class ServicesController : ControllerBase
             return NotFound();
 
         service.NextServiceDate = dto.NextServiceDate;
+        service.NextServiceMileageTarget = string.IsNullOrWhiteSpace(dto.NextServiceMileageTarget)
+        ? "-" : dto.NextServiceMileageTarget.Trim();
         service.Cost = dto.Cost;
         service.MechanicNotes += $"\nFinal Notes: {dto.FinalObservations}";
         service.CreatedBy = dto.DeliveredBy ?? service.CreatedBy;
@@ -119,6 +121,7 @@ public class ServicesController : ControllerBase
                 ServiceType = s.ServiceType,
                 Description = s.Description,
                 MechanicNotes = s.MechanicNotes,
+                NextServiceMileageTarget = s.NextServiceMileageTarget,
                 PlateNumber = vehicle.PlateNumber,
                 ClientName = vehicle.Client.Name,
                 ExitDate = s.ExitDate,
@@ -150,6 +153,7 @@ public class ServicesController : ControllerBase
             Mileage = service.MileageAtService,
             ServiceType = service.ServiceType,
             Description = service.Description,
+            NextServiceMileageTarget = service.NextServiceMileageTarget,
             MechanicNotes = service.MechanicNotes,
             PlateNumber = service.Vehicle.PlateNumber,
             ClientName = service.Vehicle.Client.Name,
@@ -179,6 +183,7 @@ public class ServicesController : ControllerBase
                 Description = s.Description,
                 MechanicNotes = s.MechanicNotes,
                 PlateNumber = s.Vehicle.PlateNumber,
+                NextServiceMileageTarget = s.NextServiceMileageTarget,
                 Brand = s.Vehicle.Brand,
                 Model = s.Vehicle.Model,
                 Year = s.Vehicle.Year,
@@ -190,6 +195,47 @@ public class ServicesController : ControllerBase
             .ToListAsync();
 
         return Ok(services);
+    }
+
+    [HttpPatch("{id}/notes")]
+    public async Task<IActionResult> UpdateNotes(Guid id, [FromBody] UpdateServiceNotesDto dto)
+    {
+        if (dto == null || string.IsNullOrWhiteSpace(dto.Notes))
+            return BadRequest(new { message = "Notes es requerido." });
+
+        var workshopId = GetCurrentWorkshopId();
+
+        var service = await _context.Services
+            .Include(s => s.Vehicle).ThenInclude(v => v.Client)
+            .Include(s => s.Worker)
+            .FirstOrDefaultAsync(s => s.Id == id && s.Vehicle.Client.WorkshopId == workshopId);
+
+        if (service == null)
+            return NotFound();
+
+        var newNotes = dto.Notes.Trim();
+
+        if (dto.Append == true)
+        {
+            // Agregar al final (mantener historial manual en el texto).
+            service.MechanicNotes = string.IsNullOrWhiteSpace(service.MechanicNotes)
+                ? newNotes
+                : $"{service.MechanicNotes}\n{newNotes}";
+        }
+        else
+        {
+            // Reemplazar completamente las notas.
+            service.MechanicNotes = newNotes;
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Devuelvo el valor actualizado por comodidad del front
+        return Ok(new
+        {
+            id = service.Id,
+            mechanicNotes = service.MechanicNotes
+        });
     }
 
     private Guid GetCurrentWorkshopId()

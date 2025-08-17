@@ -8,4 +8,5 @@ public class CompleteServiceDto
     public string? DeliveredBy { get; set; }
     public DateTime? NextServiceDate { get; set; }
     public decimal? Cost { get; set; }
+    public string? NextServiceMileageTarget { get; set; }
 }

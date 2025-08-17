@@ -30,6 +30,7 @@ public class WorkersController : ControllerBase
             Name = dto.Name,
             Email = dto.Email,
             Phone = dto.Phone,
+            Cedula = dto.Cedula,
             Role = dto.Role
         };
 
@@ -42,6 +43,7 @@ public class WorkersController : ControllerBase
             Name = worker.Name,
             Email = worker.Email,
             Phone = worker.Phone,
+            Cedula = worker.Cedula,
             Role = worker.Role,
             CreatedAt = worker.CreatedAt
         });
@@ -61,6 +63,7 @@ public class WorkersController : ControllerBase
                 Name = w.Name,
                 Email = w.Email,
                 Phone = w.Phone,
+                Cedula = w.Cedula,
                 Role = w.Role,
                 CreatedAt = w.CreatedAt
             })
@@ -85,11 +88,46 @@ public class WorkersController : ControllerBase
             Id = worker.Id,
             Name = worker.Name,
             Email = worker.Email,
+            Cedula= worker.Cedula,  
             Phone = worker.Phone,
             Role = worker.Role,
             CreatedAt = worker.CreatedAt
         });
     }
+
+    // WorkersController.cs  (agrega debajo de GetWorkerById / antes de Delete)
+    [HttpPut("{id}")]
+    public async Task<ActionResult<WorkerResponseDto>> UpdateWorker(Guid id, [FromBody] UpdateWorkerDto dto)
+    {
+        var workshopId = GetCurrentWorkshopId();
+
+        var worker = await _context.Workers
+            .FirstOrDefaultAsync(w => w.Id == id && w.WorkshopId == workshopId);
+
+        if (worker == null) return NotFound();
+
+        // Actualizaciones (si viene null, mantiene el valor actual)
+        if (!string.IsNullOrWhiteSpace(dto.Name)) worker.Name = dto.Name.Trim();
+        if (dto.Email != null) worker.Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim();
+        if (dto.Phone != null) worker.Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim();
+        if (dto.Role != null) worker.Role = string.IsNullOrWhiteSpace(dto.Role) ? null : dto.Role.Trim();
+        if (dto.Cedula != null) worker.Cedula = string.IsNullOrWhiteSpace(dto.Cedula) ? null : dto.Cedula.Trim();
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new WorkerResponseDto
+        {
+            Id = worker.Id,
+            Name = worker.Name,
+            Email = worker.Email,
+            Phone = worker.Phone,
+            Cedula = worker.Cedula,
+            Role = worker.Role,
+            CreatedAt = worker.CreatedAt
+        });
+    }
+
+
     // Controllers/WorkersController.cs  (añade debajo de GetWorkerById)
     [HttpGet("{id}/overview")]
     public async Task<ActionResult<WorkerOverviewDto>> GetWorkerOverview(Guid id)
@@ -116,6 +154,7 @@ public class WorkersController : ControllerBase
             Name = worker.Name,
             Email = worker.Email,
             Phone = worker.Phone,
+            Cedula = worker.Cedula,
             Role = worker.Role,
             CreatedAt = worker.CreatedAt,
             CompletedServices = completedCount

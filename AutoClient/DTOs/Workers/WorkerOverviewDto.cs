@@ -7,6 +7,7 @@ public class WorkerOverviewDto
     public string Name { get; set; } = "";
     public string? Email { get; set; }
     public string? Phone { get; set; }
+    public string? Cedula { get; set; }
     public string? Role { get; set; }
     public DateTime CreatedAt { get; set; }
     public int CompletedServices { get; set; }

@@ -13,6 +13,7 @@ using QuestPDF.Infrastructure;
 using Npgsql;
 using System.IO;
 using System.Linq;
+using AutoClient.Services.Email;
 
 namespace AutoClient.Services;
 
@@ -22,19 +23,21 @@ public class InvoiceService : IInvoiceService
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<InvoiceService> _log;
     private readonly SmtpSettings _smtp;
+    private readonly IInvoiceMailer _mailer;
 
     public InvoiceService(
         ApplicationDbContext db,
         IWebHostEnvironment env,
         IOptions<SmtpSettings> smtpOptions,
-        ILogger<InvoiceService> log)
+        ILogger<InvoiceService> log,
+        IInvoiceMailer mailer)
     {
         _db = db;
         _env = env;
         _smtp = smtpOptions.Value;
         _log = log;
+        _mailer = mailer;
 
-        // Aceptar licencia Community (recomendado también en Program.cs al iniciar la app).
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
@@ -65,11 +68,11 @@ public class InvoiceService : IInvoiceService
             new(1, service.ServiceType ?? "Servicio", service.Cost ?? 0m)
         };
 
-        var receivedByDefault = string.Empty; // Ajusta si luego usas Worker/DeliveredBy
+        var receivedByDefault = string.Empty;
 
         var dto = overrides is null
             ? new InvoiceCreateDto(
-                template: "preprinted",
+                template: "styled", // usamos el layout pintado
                 client: defClient,
                 date: defDate,
                 paymentType: "contado",
@@ -109,7 +112,7 @@ public class InvoiceService : IInvoiceService
             ReceivedBy = dto.receivedBy ?? string.Empty
         };
 
-        // 3) map Items + totales
+        // 3) items + totales
         decimal subtotal = 0m;
         int order = 1;
         foreach (var it in dto.items)
@@ -133,10 +136,14 @@ public class InvoiceService : IInvoiceService
         _db.Invoices.Add(inv);
         await _db.SaveChangesAsync(ct);
 
-        // 4) Render PDF
-        var pdfBytes = string.Equals(dto.template, "preprinted", StringComparison.OrdinalIgnoreCase)
-            ? await RenderPreprintedAsync(inv)
-            : await RenderDigitalAsync(inv);
+        // 4) PDF: respetar el template solicitado
+        byte[] pdfBytes = (dto.template ?? "styled").ToLowerInvariant() switch
+        {
+            "preprinted" => await RenderPreprintedAsync(inv),
+            "digital" => await RenderDigitalAsync(inv),
+            _ => await RenderStyledAsync(inv) // "styled" por defecto
+        };
+
 
         // 5) Guardar archivo
         var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
@@ -155,7 +162,30 @@ public class InvoiceService : IInvoiceService
         {
             try
             {
-                await SendEmailAsync(inv, pdfBytes);
+                var vm = new InvoiceEmailView
+                {
+                    InvoiceNumber = inv.InvoiceNumber.ToString(),
+                    ClientName = inv.ClientName,
+                    ClientEmail = inv.ClientEmail,
+                    ClientAddress = inv.ClientAddress,
+                    Day = dto.date.day,
+                    Month = dto.date.month,
+                    Year = dto.date.year,
+                    PaymentType = dto.paymentType,
+                    ReceivedBy = dto.receivedBy,
+                    TaxRate = dto.taxRate,
+                    Items = inv.Items.Select(it => new InvoiceEmailItem
+                    {
+                        Qty = it.Quantity,
+                        Description = it.Description,
+                        UnitPrice = it.UnitPrice
+                    }).ToList(),
+                    Subtotal = inv.Subtotal,
+                    Tax = inv.Tax,
+                    Total = inv.Total
+                };
+
+                await _mailer.SendAsync(vm, pdfBytes, true, ct);
             }
             catch (Exception ex)
             {
@@ -173,8 +203,7 @@ public class InvoiceService : IInvoiceService
             .FirstOrDefaultAsync(i => i.Id == invoiceId, ct)
             ?? throw new Exception("Factura no encontrada.");
 
-        // Para stream rápido usamos la digital (puedes condicionar si quieres).
-        var bytes = await RenderDigitalAsync(inv);
+        var bytes = await RenderStyledAsync(inv);
         return new MemoryStream(bytes);
     }
 
@@ -194,23 +223,237 @@ public class InvoiceService : IInvoiceService
             var result = await cmd.ExecuteScalarAsync(ct);
             return Convert.ToInt64(result);
         }
-        catch (PostgresException ex) when (ex.SqlState == "42P01") // undefined_table / sequence no existe
+        catch (PostgresException ex) when (ex.SqlState == "42P01")
         {
-            // Crear la secuencia en caliente
             _log.LogWarning("Secuencia 'invoice_number_seq' no encontrada. Creando automáticamente...");
             var createCmdText = "CREATE SEQUENCE invoice_number_seq START 1 INCREMENT 1;";
             await using var createCmd = new NpgsqlCommand(createCmdText, conn);
             await createCmd.ExecuteNonQueryAsync(ct);
 
-            // Tomar primer valor
             await using var nextCmd = new NpgsqlCommand("SELECT nextval('invoice_number_seq')", conn);
             var result = await nextCmd.ExecuteScalarAsync(ct);
             return Convert.ToInt64(result);
         }
     }
 
+    // ========= Layout “pintado” tipo talonario (CORREGIDO) =========
+    private Task<byte[]> RenderStyledAsync(Invoice inv)
+    {
+        // Colores
+        var Navy = "#1F3B6F"; // azul cabecera / total
+        var Navy70 = "#2A4A84";
+        var Beige = "#FAF7F2"; // papel
+        var Ink = "#0F172A";
+        var RedNo = "#C23B2A";
 
-    // ========= Plantillas QuestPDF =========
+        // Estilos
+        var baseText = TextStyle.Default
+            .FontSize(12)
+            .FontColor(Ink)
+            .FontFamily("Helvetica"); // usa el nombre de la fuente como string
+
+        var h1 = baseText
+            .Size(22)
+            .SemiBold()
+            .FontColor(Navy);
+
+        var bytes = Document.Create(doc =>
+        {
+            doc.Page(page =>
+            {
+                page.Size(PageSizes.Letter);
+                page.Margin(28);
+                page.DefaultTextStyle(baseText);
+
+                // si esto te daba error, puedes comentarlo sin problema
+                // page.Background().Color(Beige);
+
+                page.Content().Column(col =>
+                {
+                    col.Spacing(10);
+
+                    // CABECERA
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Row(r =>
+                        {
+                            // Logo opcional: wwwroot/templates/diogenes_logo.png
+                            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                            var logoPath = Path.Combine(webRoot, "templates", "diogenes_logo.png");
+                            if (System.IO.File.Exists(logoPath))
+                                r.ConstantItem(64).Height(64).Image(System.IO.File.ReadAllBytes(logoPath)).FitArea();
+
+                            r.RelativeItem().Column(c =>
+                            {
+                                c.Item().Text("AUTO SERVICIOS DIÓGENES").Style(h1);
+                                c.Item().Text("R.U.C. 4-246-714  D.V. 18").SemiBold().FontColor(Navy);
+                                c.Item().Text("Ventas al por menor de partes, piezas accesorios de vehículos y automotores")
+                                    .FontSize(10).FontColor(Navy);
+                                c.Item().Text("Los Anastacios, Urbanización Rincón Largo · Calle Principal, Casa 2X · Cel. 6622-4854")
+                                    .FontSize(10).FontColor(Navy);
+                            });
+                        });
+
+                        // Día / Mes / Año + tipo pago
+                        row.ConstantItem(220).Column(c =>
+                        {
+                            c.Item().Row(r =>
+                            {
+                                void Box(string label, string value)
+                                {
+                                    r.RelativeItem().Column(cc =>
+                                    {
+                                        cc.Item().Border(1).BorderColor(Navy).Padding(4).AlignCenter().Text(label).FontSize(9).FontColor(Navy);
+                                        cc.Item().Border(1).BorderColor(Navy).Padding(6).AlignCenter().Text(value).SemiBold().FontColor(Navy);
+                                    });
+                                    r.Spacing(6);
+                                }
+
+                                Box("DÍA", inv.InvoiceDate.Day.ToString("00"));
+                                Box("MES", inv.InvoiceDate.Month.ToString("00"));
+                                Box("AÑO", inv.InvoiceDate.Year.ToString());
+                            });
+
+                            c.Item().PaddingTop(8).Row(r =>
+                            {
+                                void Check(string label, bool on)
+                                {
+                                    r.ConstantItem(16).Height(16).Border(2).BorderColor(Navy)
+                                     .Background(on ? Navy : null);
+                                    r.Spacing(6);
+                                    r.RelativeItem().AlignMiddle().Text(label).FontSize(11).SemiBold().FontColor(Navy);
+                                }
+
+                                Check("CRÉDITO", string.Equals(inv.PaymentType, "credito", StringComparison.OrdinalIgnoreCase));
+                                r.Spacing(12);
+                                Check("CONTADO", !string.Equals(inv.PaymentType, "credito", StringComparison.OrdinalIgnoreCase));
+                            });
+                        });
+                    });
+
+                    // FACTURA ____   Nº (rojo)
+                    col.Item().Row(r =>
+                    {
+                        r.RelativeItem().Text("FACTURA").SemiBold().FontSize(16).FontColor(Navy);
+                        r.Spacing(8);
+                        r.RelativeItem().LineHorizontal(1).LineColor(Navy);
+                        r.Spacing(12);
+                        r.ConstantItem(80).AlignRight().Text(inv.InvoiceNumber.ToString()).FontSize(16).Bold().FontColor(RedNo);
+                    });
+
+                    // Cliente / Dirección
+                    col.Item().Column(c =>
+                    {
+                        c.Spacing(4);
+                        c.Item().Row(r =>
+                        {
+                            r.ConstantItem(90).Text("Cliente:").SemiBold();
+                            r.RelativeItem().BorderBottom(1).BorderColor(Navy).PaddingBottom(4)
+                                .Text(inv.ClientName ?? "");
+                        });
+                        c.Item().Row(r =>
+                        {
+                            r.ConstantItem(90).Text("Dirección:").SemiBold();
+                            r.RelativeItem().BorderBottom(1).BorderColor(Navy).PaddingBottom(4)
+                                .Text(inv.ClientAddress ?? "");
+                        });
+                    });
+
+                    // TABLA
+                    col.Item().Element(elem =>
+                    {
+                        elem.Table(t =>
+                        {
+                            t.ColumnsDefinition(c =>
+                            {
+                                c.ConstantColumn(70);
+                                c.RelativeColumn(1);
+                                c.ConstantColumn(110);
+                                c.ConstantColumn(110);
+                            });
+
+                            // header
+                            // reemplaza la versión actual
+                            t.Header(h =>
+                            {
+                                void Head(string s) =>
+                                    h.Cell()
+                                     .Background(Navy)
+                                     .Padding(6)
+                                     .AlignCenter()                 // <— al contenedor
+                                     .Text(s).FontColor("#FFFFFF").SemiBold();  // <— luego el texto
+
+                                Head("CANT.");
+                                Head("DESCRIPCION");
+                                Head("P. UNIT.");
+                                Head("TOTAL");
+                            });
+
+
+                            var rows = inv.Items.OrderBy(i => i.SortOrder).ToList();
+                            var maxRows = Math.Max(rows.Count, 14);
+                            for (int i = 0; i < maxRows; i++)
+                            {
+                                var it = i < rows.Count ? rows[i] : null;
+
+                                t.Cell().Border(1).BorderColor(Navy).Padding(6).AlignRight()
+                                    .Text(it != null ? it.Quantity.ToString("0.##") : "");
+                                t.Cell().Border(1).BorderColor(Navy).Padding(6)
+                                    .Text(it?.Description ?? "");
+                                t.Cell().Border(1).BorderColor(Navy).Padding(6).AlignRight()
+                                    .Text(it != null ? it.UnitPrice.ToString("0.00") : "");
+                                t.Cell().Border(1).BorderColor(Navy).Padding(6).AlignRight()
+                                    .Text(it != null ? it.LineTotal.ToString("0.00") : "");
+                            }
+                        });
+                    });
+
+                    // TOTALES + Recibido por
+                    col.Item().Row(r =>
+                    {
+                        r.RelativeItem().PaddingTop(20).Column(c =>
+                        {
+                            c.Item().Text("Recibido por").SemiBold().FontColor(Ink);
+                            c.Item().Row(rr => { rr.RelativeItem().BorderBottom(1).BorderColor(Navy).PaddingBottom(4); });
+                        });
+
+                        r.ConstantItem(300).Column(c =>
+                        {
+                            c.Item().Row(rr =>
+                            {
+                                rr.RelativeItem().Border(1).BorderColor(Navy).Background("#FFFFFF")
+                                    .Padding(8).Text("SUB-TOTAL").SemiBold().FontColor(Ink);
+                                rr.ConstantItem(130).Border(1).BorderColor(Navy)
+                                    .Padding(8).AlignRight().Text(inv.Subtotal.ToString("0.00")).SemiBold().FontColor(Ink);
+                            });
+
+                            c.Item().Row(rr =>
+                            {
+                                rr.RelativeItem().Border(1).BorderColor(Navy).Background("#FFFFFF")
+                                    .Padding(8).Text("I.T.B.M.S").SemiBold().FontColor(Ink);
+                                rr.ConstantItem(130).Border(1).BorderColor(Navy)
+                                    .Padding(8).AlignRight().Text(inv.Tax.ToString("0.00")).SemiBold().FontColor(Ink);
+                            });
+
+                            c.Item().Row(rr =>
+                            {
+                                rr.RelativeItem().Border(1).BorderColor(Navy).Background(Navy70)
+                                    .Padding(10).Text("TOTAL").Bold().FontColor("#FFFFFF");
+                                rr.ConstantItem(130).Border(1).BorderColor(Navy).Background(Navy)
+                                    .Padding(10).AlignRight().Text(inv.Total.ToString("0.00")).Bold().FontColor("#FFFFFF");
+                            });
+                        });
+                    });
+                });
+            });
+        }).GeneratePdf();   // <= devuelve byte[]
+
+        return Task.FromResult(bytes);
+    }
+
+
+
+    // ========= Digital simple (queda por si lo quieres seguir usando) =========
     private Task<byte[]> RenderDigitalAsync(Invoice inv)
     {
         var bytes = Document.Create(doc =>
@@ -235,10 +478,10 @@ public class InvoiceService : IInvoiceService
                     {
                         t.ColumnsDefinition(c =>
                         {
-                            c.RelativeColumn(1);  // Cant
-                            c.RelativeColumn(6);  // Desc
-                            c.RelativeColumn(2);  // P.Unit
-                            c.RelativeColumn(2);  // Total
+                            c.RelativeColumn(1);
+                            c.RelativeColumn(6);
+                            c.RelativeColumn(2);
+                            c.RelativeColumn(2);
                         });
 
                         t.Header(h =>
@@ -271,153 +514,114 @@ public class InvoiceService : IInvoiceService
         return Task.FromResult(bytes);
     }
 
+    // ========= (Opcional) con PNG de fondo =========
     private async Task<byte[]> RenderPreprintedAsync(Invoice inv)
     {
         var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         var templatePath = Path.Combine(webRoot, "templates", "diogenes_form.png");
 
-        if (!File.Exists(templatePath))
-            return await RenderDigitalAsync(inv);
+        if (!System.IO.File.Exists(templatePath))
+            return await RenderStyledAsync(inv); // si no hay imagen, usa el pintado
 
-        var bg = await File.ReadAllBytesAsync(templatePath);
+        var bg = await System.IO.File.ReadAllBytesAsync(templatePath);
 
-        // === Coordenadas (pt). Ajusta a tu impresora ===
-        const float PX = 1f;      // escala fina global (0.99f / 1.01f si tu impresora descalibra)
-        const float TOP = 32f;    // desplazamiento vertical global
+        const float PX = 1f;
+        const float TOP = 0f;
 
-        // Encabezado derecha (número y fecha)
-        var FACT_NO_X = 420f; var FACT_NO_Y = 68f;
-        var DATE_D_X = 510f; var DATE_Y = 96f;
-        var DATE_M_X = 550f;
-        var DATE_A_X = 590f;
+        const string BLUE = "#1F3B6F";
+        const string RED = "#C23B2A";
 
-        // Cliente / Dirección
-        var CLIENT_X = 70f; var CLIENT_Y = 160f;
-        var ADDR_X = 70f; var ADDR_Y = 188f;
+        float FACT_NO_X = 140, FACT_NO_Y = 180;
+        float DATE_D_X = 535, DATE_D_Y = 175, DATE_M_X = 575, DATE_M_Y = 175, DATE_A_X = 615, DATE_A_Y = 175;
+        float CLIENT_X = 84, CLIENT_Y = 230, ADDR_X = 84, ADDR_Y = 262;
+        float CREDIT_X = 560, CREDIT_Y = 236, CASH_X = 560, CASH_Y = 264;
+        float ROWS_START_Y = 318, ROW_HEIGHT = 28, COL_QTY_X = 68, COL_DESC_X = 150, COL_UNIT_X = 470, COL_TOTAL_X = 560;
+        int MAX_ROWS = 16;
+        float SUBT_X = 560, SUBT_Y = 685, ITBMS_X = 560, ITBMS_Y = 712, TOT_X = 560, TOT_Y = 740;
+        float REC_X = 110, REC_Y = 760;
 
-        // CRÉDITO / CONTADO
-        var CRED_X = 520f; var PAY_Y = 160f;
-        var CONT_X = 520f; var CONT_Y = 180f;
-
-        // Tabla de ítems
-        var ROWS_START_Y = 230f;
-        var ROW_HEIGHT = 26f;
-        var COL_QTY_X = 60f;
-        var COL_DESC_X = 120f;
-        var COL_UNIT_X = 430f;
-        var COL_TOTAL_X = 520f;
-        var MAX_ROWS = 12;
-
-        // Totales
-        var SUBT_X = 520f; var SUBT_Y = 520f;
-        var ITBMS_X = 520f; var ITBMS_Y = 546f;
-        var TOT_X = 520f; var TOT_Y = 572f;
-
-        // Recibido por
-        var REC_X = 90f; var REC_Y = 610f;
-
-        var bytes = Document.Create(doc =>
+        try
         {
-            doc.Page(page =>
+            var bytes = Document.Create(doc =>
             {
-                page.Size(PageSizes.Letter);
-                page.Margin(0);
-
-                page.Content().Layers(l =>
+                doc.Page(page =>
                 {
-                    // Capa de fondo
-                    l.PrimaryLayer().Image(bg);
+                    page.Size(PageSizes.Letter);
+                    page.Margin(0);
+                    page.DefaultTextStyle(t => t.FontSize(11));
 
-                    // Capa de escritura: usamos contenedores con Translate (no Canvas)
-                    l.Layer().Element(root =>
+                    page.Background().Image(bg).FitArea();
+
+                    page.Content().Element(root =>
                     {
-                        // FACTURA Nº
-                        root.Element(e => e
-                            .TranslateX(FACT_NO_X * PX)
-                            .TranslateY((FACT_NO_Y + TOP) * PX)
-                            .Text($"N° {inv.InvoiceNumber}")
-                                .FontSize(14)
-                                .Bold()
-                                .FontColor("#B23A2A")
-                        );
+                        root.Element(e => e.TranslateX(FACT_NO_X * PX).TranslateY((FACT_NO_Y + TOP) * PX)
+                            .Text(inv.InvoiceNumber.ToString()).FontSize(16).Bold().FontColor(RED));
 
-                        // Fecha DÍA / MES / AÑO
-                        root.Element(e => e.TranslateX(DATE_D_X * PX).TranslateY((DATE_Y + TOP) * PX)
-                            .Text(inv.InvoiceDate.Day.ToString("00")).Bold());
-                        root.Element(e => e.TranslateX(DATE_M_X * PX).TranslateY((DATE_Y + TOP) * PX)
-                            .Text(inv.InvoiceDate.Month.ToString("00")).Bold());
-                        root.Element(e => e.TranslateX(DATE_A_X * PX).TranslateY((DATE_Y + TOP) * PX)
-                            .Text(inv.InvoiceDate.Year.ToString()).Bold());
+                        root.Element(e => e.TranslateX(DATE_D_X * PX).TranslateY((DATE_D_Y + TOP) * PX)
+                            .Text(inv.InvoiceDate.Day.ToString("00")).Bold().FontColor(BLUE));
+                        root.Element(e => e.TranslateX(DATE_M_X * PX).TranslateY((DATE_M_Y + TOP) * PX)
+                            .Text(inv.InvoiceDate.Month.ToString("00")).Bold().FontColor(BLUE));
+                        root.Element(e => e.TranslateX(DATE_A_X * PX).TranslateY((DATE_A_Y + TOP) * PX)
+                            .Text(inv.InvoiceDate.Year.ToString()).Bold().FontColor(BLUE));
 
-                        // Cliente / Dirección
                         root.Element(e => e.TranslateX(CLIENT_X * PX).TranslateY((CLIENT_Y + TOP) * PX)
-                            .Text(inv.ClientName ?? "").FontSize(11));
+                            .Text(inv.ClientName ?? "").FontSize(12));
                         root.Element(e => e.TranslateX(ADDR_X * PX).TranslateY((ADDR_Y + TOP) * PX)
-                            .Text(inv.ClientAddress ?? "").FontSize(11));
+                            .Text(inv.ClientAddress ?? "").FontSize(12));
 
-                        // CRÉDITO / CONTADO (marca ✔)
-                        var isCredito = string.Equals(inv.PaymentType, "credito", StringComparison.OrdinalIgnoreCase);
-                        var isContado = !isCredito;
-                        root.Element(e => e.TranslateX(CRED_X * PX).TranslateY((PAY_Y + TOP) * PX)
-                            .Text(isCredito ? "✔" : "").Bold());
-                        root.Element(e => e.TranslateX(CONT_X * PX).TranslateY((CONT_Y + TOP) * PX)
-                            .Text(isContado ? "✔" : "").Bold());
+                        bool isCredito = string.Equals(inv.PaymentType, "credito", StringComparison.OrdinalIgnoreCase);
+                        root.Element(e => e.TranslateX(CREDIT_X * PX).TranslateY((CREDIT_Y + TOP) * PX)
+                            .Text(isCredito ? "✔" : "").Bold().FontColor(BLUE));
+                        root.Element(e => e.TranslateX(CASH_X * PX).TranslateY((CASH_Y + TOP) * PX)
+                            .Text(!isCredito ? "✔" : "").Bold().FontColor(BLUE));
 
-                        // Filas de ítems
                         int i = 0;
                         foreach (var it in inv.Items.OrderBy(x => x.SortOrder).Take(MAX_ROWS))
                         {
                             var y = (ROWS_START_Y + i * ROW_HEIGHT + TOP) * PX;
-
                             root.Element(e => e.TranslateX(COL_QTY_X * PX).TranslateY(y)
-                                .Text(it.Quantity.ToString("0.##")).FontSize(11));
+                                .Text(it.Quantity.ToString("0.##")).FontSize(12));
                             root.Element(e => e.TranslateX(COL_DESC_X * PX).TranslateY(y)
-                                .Text(it.Description ?? "").FontSize(11));
+                                .Text(it.Description ?? "").FontSize(12));
                             root.Element(e => e.TranslateX(COL_UNIT_X * PX).TranslateY(y)
-                                .Text(it.UnitPrice.ToString("0.00")).FontSize(11));
+                                .Text(it.UnitPrice.ToString("0.00")).FontSize(12));
                             root.Element(e => e.TranslateX(COL_TOTAL_X * PX).TranslateY(y)
-                                .Text(it.LineTotal.ToString("0.00")).FontSize(11));
-
+                                .Text(it.LineTotal.ToString("0.00")).FontSize(12));
                             i++;
                         }
 
-                        // Totales
                         root.Element(e => e.TranslateX(SUBT_X * PX).TranslateY((SUBT_Y + TOP) * PX)
-                            .Text(inv.Subtotal.ToString("0.00")).Bold());
+                            .Text(inv.Subtotal.ToString("0.00")).Bold().FontColor(BLUE));
                         root.Element(e => e.TranslateX(ITBMS_X * PX).TranslateY((ITBMS_Y + TOP) * PX)
-                            .Text(inv.Tax.ToString("0.00")).Bold());
+                            .Text(inv.Tax.ToString("0.00")).Bold().FontColor(BLUE));
                         root.Element(e => e.TranslateX(TOT_X * PX).TranslateY((TOT_Y + TOP) * PX)
-                            .Text(inv.Total.ToString("0.00")).Bold());
+                            .Text(inv.Total.ToString("0.00")).Bold().FontColor(BLUE));
 
-                        // Recibido por
                         root.Element(e => e.TranslateX(REC_X * PX).TranslateY((REC_Y + TOP) * PX)
-                            .Text(inv.ReceivedBy ?? "").FontSize(11));
+                            .Text(inv.ReceivedBy ?? "").FontSize(12));
                     });
                 });
-            });
-        }).GeneratePdf();
+            }).GeneratePdf();
 
-        return bytes;
+            return bytes;
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "QuestPDF falló en RenderPreprintedAsync.");
+            return await RenderStyledAsync(inv);
+        }
     }
 
-
-    // ========= Email =========
+    // ========= Email “simple” (no se usa si trabajas con IInvoiceMailer) =========
     private async Task SendEmailAsync(Invoice inv, byte[] pdf)
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_smtp.SenderName ?? "AutoClient", _smtp.SenderEmail));
         message.To.Add(new MailboxAddress(inv.ClientName, inv.ClientEmail));
-
-        // Copia oculta a autoserviciosdiogenes@gmail.com
         message.Bcc.Add(new MailboxAddress("Auto Servicios Diógenes", "zerokay02@gmail.com"));
-
         message.Subject = $"Factura #{inv.InvoiceNumber} - Auto Servicios Diógenes";
 
-        var builder = new BodyBuilder
-        {
-            TextBody = $"Adjuntamos la factura #{inv.InvoiceNumber}.\nTotal: {inv.Total:0.00}"
-        };
-
+        var builder = new BodyBuilder { TextBody = $"Adjuntamos la factura #{inv.InvoiceNumber}.\nTotal: {inv.Total:0.00}" };
         builder.Attachments.Add($"Factura_{inv.InvoiceNumber}.pdf", pdf, new ContentType("application", "pdf"));
         message.Body = builder.ToMessageBody();
 
@@ -427,5 +631,4 @@ public class InvoiceService : IInvoiceService
         await smtp.SendAsync(message);
         await smtp.DisconnectAsync(true);
     }
-
 }

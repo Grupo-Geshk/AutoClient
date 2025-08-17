@@ -31,7 +31,10 @@ public class Service
 
     public int MileageAtService { get; set; }
 
-    public DateTime? NextServiceDate { get; set; }
+    public DateTime? NextServiceDate { get; set; } 
+
+    [MaxLength(20)]
+    public string? NextServiceMileageTarget { get; set; }
 
     public decimal? Cost { get; set; }
 

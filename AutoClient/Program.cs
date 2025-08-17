@@ -1,6 +1,7 @@
 ﻿using AutoClient.Data;
 using AutoClient.Services;
 using AutoClient.Settings;
+using AutoClient.Services.Email;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -13,47 +14,54 @@ var builder = WebApplication.CreateBuilder(args);
 // === CONFIGURACIONES BASE ===
 DotNetEnv.Env.Load();
 
-var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+// DB
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? throw new InvalidOperationException("Falta ConnectionStrings__DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+// Controllers + FluentValidation
 builder.Services.AddControllers()
     .AddFluentValidation(config =>
         config.RegisterValidatorsFromAssemblyContaining<Program>());
 
-// SMTP
+// SMTP (una sola vez, por env vars)
 builder.Services.Configure<SmtpSettings>(options =>
 {
-    options.Host = Environment.GetEnvironmentVariable("Smtp__Host");
+    options.Host = Environment.GetEnvironmentVariable("Smtp__Host") ?? "";
     options.Port = int.Parse(Environment.GetEnvironmentVariable("Smtp__Port") ?? "587");
-    options.Username = Environment.GetEnvironmentVariable("Smtp__Username");
-    options.Password = Environment.GetEnvironmentVariable("Smtp__Password");
-    options.SenderName = Environment.GetEnvironmentVariable("Smtp__SenderName");
-    options.SenderEmail = Environment.GetEnvironmentVariable("Smtp__SenderEmail");
+    options.Username = Environment.GetEnvironmentVariable("Smtp__Username") ?? "";
+    options.Password = Environment.GetEnvironmentVariable("Smtp__Password") ?? "";
+    options.SenderName = Environment.GetEnvironmentVariable("Smtp__SenderName") ?? "AutoClient";
+    options.SenderEmail = Environment.GetEnvironmentVariable("Smtp__SenderEmail") ?? "no-reply@example.com";
 });
 
 // JWT
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+var jwtKey = Environment.GetEnvironmentVariable("Jwt__Key")
+    ?? throw new InvalidOperationException("Falta Jwt__Key");
+var jwtIssuer = Environment.GetEnvironmentVariable("Jwt__Issuer")
+    ?? throw new InvalidOperationException("Falta Jwt__Issuer");
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var key = Environment.GetEnvironmentVariable("Jwt__Key");
-        var issuer = Environment.GetEnvironmentVariable("Jwt__Issuer");
-
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = issuer,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+            ValidIssuer = jwtIssuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
 // Servicios propios
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IInvoiceMailer, InvoiceMailer>();  // mailer HTML + PDF
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -77,14 +85,10 @@ builder.Services.AddSwaggerGen(c =>
     };
 
     c.AddSecurityDefinition(jwtScheme.Reference.Id, jwtScheme);
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { jwtScheme, Array.Empty<string>() }
-    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement { { jwtScheme, Array.Empty<string>() } });
 });
 
 // === CORS ===
-// Usa env var: AllowedOrigins=http://localhost:5173,https://autoclientst.grupogeshk.com
 var allowedOrigins = (Environment.GetEnvironmentVariable("AllowedOrigins")
                      ?? "http://localhost:5173,https://autoclientst.grupogeshk.com")
                      .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -96,8 +100,7 @@ builder.Services.AddCors(options =>
          .AllowAnyHeader()
          .AllowAnyMethod()
          .WithExposedHeaders("Content-Disposition")
-         .AllowCredentials() // no se pasa true/false aquí
-    );
+         .AllowCredentials());
 });
 
 var app = builder.Build();
@@ -111,16 +114,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
-// ⚠️ CORS debe ir ANTES de Auth y antes de MapControllers
 app.UseCors("Frontends");
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Preflight helper (por si algún proxy molesta)
+// Preflight helper (opcional)
 app.MapMethods("{*path}", new[] { "OPTIONS" }, () => Results.Ok());
 
 app.MapControllers();
-
 app.Run();

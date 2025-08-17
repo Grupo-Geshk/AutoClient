@@ -186,6 +186,7 @@ public class VehiclesController : ControllerBase
             return NotFound();
 
         vehicle.Brand = dto.Brand;
+        vehicle.PlateNumber = dto.PlateNumber;
         vehicle.Model = dto.Model;
         vehicle.Year = dto.Year;
         vehicle.Color = dto.Color;

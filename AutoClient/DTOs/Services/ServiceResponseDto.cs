@@ -11,6 +11,7 @@ public class ServiceResponseDto
     ? $"{(DateTime.UtcNow - ExitDate.Value).Days} días"
     : null;
     public int Mileage { get; set; }
+    public string? NextServiceMileageTarget { get; set; }
     public string? ServiceType { get; set; }
     public string? Description { get; set; }
     public string? MechanicNotes { get; set; }

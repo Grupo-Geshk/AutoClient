@@ -14,6 +14,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Worker> Workers { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<InvoiceItem> InvoiceItems { get; set; }
+    public DbSet<ServiceType> ServiceTypes { get; set; }
+    public DbSet<LoginOtp> LoginOtps{ get; set; }
+    public DbSet<TrustedDevice> TrustedDevices{ get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,8 +49,11 @@ public class ApplicationDbContext : DbContext
             .HasMany<Service>()
             .WithOne(s => s.Worker)
             .HasForeignKey(s => s.WorkerId)
-            .OnDelete(DeleteBehavior.SetNull);  
-
-
+            .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<Workshop>()
+            .HasMany<ServiceType>()
+            .WithOne(st => st.Workshop)
+            .HasForeignKey(st => st.WorkshopId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

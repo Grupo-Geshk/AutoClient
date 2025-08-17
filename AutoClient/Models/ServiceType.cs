@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AutoClient.Models;
 
-public class Worker
+public class ServiceType
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -15,19 +15,7 @@ public class Worker
 
     [Required]
     [MaxLength(100)]
-    public string Name { get; set; }
-
-    [Required]
-    [MaxLength(100)]
-    public string Email { get; set; }
-
-    [MaxLength(20)]
-    public string Phone { get; set; }
-
-    [MaxLength(20)]
-    public string? Cedula { get; set; }
-    [MaxLength(100)]
-    public string Role { get; set; }  // Ej: Mecánico, Supervisor
+    public string ServiceTypeName { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

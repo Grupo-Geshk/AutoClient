@@ -1,10 +1,11 @@
-﻿namespace AutoClient.DTOs.Clients;
-
-public class UpdateClientDto
+﻿// UpdateClientDto.cs
+namespace AutoClient.DTOs.Clients
 {
-    public string Name { get; set; }
-    public string Phone { get; set; }
-    public string DNI { get; set; }
-    public string? Email { get; set; }
-    public string? Address { get; set; }
+    public class UpdateClientDto
+    {
+        public string? Name { get; set; }      // <- ahora nullable
+        public string? Phone { get; set; }     // <- ahora nullable
+        public string? Email { get; set; }     // <- ahora nullable
+        public string? Address { get; set; }   // <- ahora nullable
+    }
 }

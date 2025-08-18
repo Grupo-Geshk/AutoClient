@@ -50,7 +50,8 @@ public class ClientsController : ControllerBase
         {
             Id = client.Id,
             Name = client.Name,
-            Phone = client.Phone
+            Phone = client.Phone,
+            Address = client.Address
         });
     }
     // Lista con búsqueda opcional
@@ -144,14 +145,40 @@ public class ClientsController : ControllerBase
         if (client == null)
             return NotFound();
 
-        client.Name = dto.Name;
-        client.Phone = dto.Phone;
-        client.Email = dto.Email;
-        client.Address = dto.Address;
+        // Merge condicional (solo actualiza lo que venga)
+        if (dto.Name is not null) client.Name = dto.Name;
+        if (dto.Phone is not null) client.Phone = dto.Phone;
+
+        if (dto.Email is not null)
+        {
+            // Si te envían string vacío, mantenemos el correo actual para no violar [Required]
+            var trimmed = dto.Email.Trim();
+            if (trimmed.Length == 0)
+            {
+                // No sobrescribir con vacío: mantenlo
+            }
+            else
+            {
+                // Validación light de formato. (Opcional: usar MailAddress)
+                try
+                {
+                    var _ = new System.Net.Mail.MailAddress(trimmed);
+                    client.Email = trimmed;
+                }
+                catch
+                {
+                    return BadRequest(new { message = "El correo tiene un formato inválido." });
+                }
+            }
+        }
+
+        if (dto.Address is not null) client.Address = dto.Address;
 
         await _context.SaveChangesAsync();
         return NoContent();
     }
+
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteClient(Guid id)
     {

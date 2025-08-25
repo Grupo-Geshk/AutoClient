@@ -29,6 +29,40 @@ public class AuthController : ControllerBase
         _smtp = smtp.Value;
     }
 
+    // Login directo SIN OTP/Email (uso temporal / admin)
+    [HttpPost("adminLogin")]
+    [AllowAnonymous]
+    public async Task<IActionResult> AdminLogin([FromBody] WorkshopLoginDto dto)
+    {
+        // 1) Buscar taller
+        var workshop = await _context.Workshops
+            .FirstOrDefaultAsync(w => w.Username == dto.Username);
+
+        // 2) Verificar credenciales
+        if (workshop == null || !VerifyPassword(dto.Password, workshop.PasswordHash))
+            return Unauthorized(new { message = "Invalid credentials." });
+
+        // 3) Emitir JWT (sin OTP, sin correo)
+        var token = _tokenService.CreateToken(workshop);
+
+        // (Opcional) si quieres seguir usando el cookie del dispositivo, lo puedes dejar:
+        // var deviceToken = Guid.NewGuid().ToString();
+        // Response.Cookies.Append("device_token", deviceToken, new CookieOptions
+        // {
+        //     HttpOnly = true,
+        //     Secure = true,
+        //     SameSite = SameSiteMode.Strict,
+        //     Expires = DateTime.UtcNow.AddYears(1)
+        // });
+
+        return Ok(new AuthResponseDto
+        {
+            Token = token,
+            WorkshopName = workshop.WorkshopName,
+            Subdomain = workshop.Subdomain
+        });
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] WorkshopLoginDto dto)
     {

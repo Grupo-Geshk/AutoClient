@@ -23,7 +23,7 @@ public class Service
     public DateTime? ExitDate { get; set; }
 
     [Required]
-    [MaxLength(50)]
+    [MaxLength(500)]
     public string ServiceType { get; set; }
 
     [MaxLength(500)]

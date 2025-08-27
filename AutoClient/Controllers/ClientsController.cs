@@ -65,9 +65,14 @@ public class ClientsController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(search))
         {
+            var s = search.Trim();
+            var sDigits = new string(s.Where(char.IsDigit).ToArray());
             query = query.Where(c =>
-                c.Name.Contains(search) ||
-                c.Email.Contains(search));
+            c.Name.Contains(s) ||
+            c.Email.Contains(s) ||
+            (!string.IsNullOrEmpty(sDigits) &&
+            new string((c.Phone ?? "").Where(char.IsDigit).ToArray()).Contains(sDigits))
+                    );
         }
 
         var results = await query

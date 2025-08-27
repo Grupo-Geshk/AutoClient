@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\Gio\\source\\repos\\AutoClient\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\models\\service.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\models\\service.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -34,7 +34,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "AuthController.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "AutoClient\\Controllers\\AuthController.cs",
@@ -47,7 +47,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Service.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Models\\Service.cs",
               "RelativeDocumentMoniker": "AutoClient\\Models\\Service.cs",
@@ -55,20 +55,20 @@
               "RelativeToolTip": "AutoClient\\Models\\Service.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-20T23:40:37.342Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-20T23:40:37.342Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "ClientsController.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\ClientsController.cs",
               "RelativeDocumentMoniker": "AutoClient\\Controllers\\ClientsController.cs",
               "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\ClientsController.cs",
               "RelativeToolTip": "AutoClient\\Controllers\\ClientsController.cs",
-              "ViewState": "AgIAAHsAAAAAAAAAAAAswLMAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAC8AAAAAAAAAAADwv0oAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-18T07:32:23.572Z"
+              "WhenOpened": "2025-08-18T07:32:23.572Z",
+              "EditorCaption": ""
             }
           ]
         }

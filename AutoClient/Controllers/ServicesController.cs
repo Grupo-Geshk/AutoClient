@@ -125,7 +125,8 @@ public class ServicesController : ControllerBase
                 PlateNumber = vehicle.PlateNumber,
                 ClientName = vehicle.Client.Name,
                 ExitDate = s.ExitDate,
-                WorkerName = s.Worker.Name
+                WorkerName = s.Worker.Name,
+                Cost = s.Cost,
             }).ToListAsync();
 
         return Ok(services);
@@ -158,7 +159,8 @@ public class ServicesController : ControllerBase
             PlateNumber = service.Vehicle.PlateNumber,
             ClientName = service.Vehicle.Client.Name,
             ExitDate = service.ExitDate,
-            WorkerName = service.Worker.Name
+            WorkerName = service.Worker.Name,
+            Cost = service.Cost,
         });
     }
 
@@ -190,6 +192,7 @@ public class ServicesController : ControllerBase
                 ClientName = s.Vehicle.Client.Name,
                 ExitDate = s.ExitDate,
                 WorkerName = s.Worker.Name,
+                Cost = s.Cost
 
             })
             .ToListAsync();

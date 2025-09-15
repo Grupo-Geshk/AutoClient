@@ -1,5 +1,4 @@
-﻿namespace AutoClient.DTOs.Services;
-
+﻿// DTOs/Services/ServiceResponseDto.cs
 public class ServiceResponseDto
 {
     public Guid Id { get; set; }
@@ -7,9 +6,7 @@ public class ServiceResponseDto
     public DateTime EntryDate { get; set; }
     public string WorkerName { get; set; }
     public string Estado => ExitDate == null ? "Pendiente" : "Completado";
-    public string? HaceCuantosDias => ExitDate.HasValue
-    ? $"{(DateTime.UtcNow - ExitDate.Value).Days} días"
-    : null;
+    public string? HaceCuantosDias => ExitDate.HasValue ? $"{(DateTime.UtcNow - ExitDate.Value).Days} días" : null;
     public int Mileage { get; set; }
     public string? NextServiceMileageTarget { get; set; }
     public string? ServiceType { get; set; }
@@ -21,5 +18,5 @@ public class ServiceResponseDto
     public string Model { get; set; }
     public int Year { get; set; }
     public DateTime? ExitDate { get; set; }
-    
+    public decimal? Cost { get; set; }
 }

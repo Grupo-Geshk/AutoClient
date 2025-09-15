@@ -90,7 +90,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // === CORS ===
 var allowedOrigins = (Environment.GetEnvironmentVariable("AllowedOrigins")
-                     ?? "http://localhost:5173,https://autoclientst.grupogeshk.com")
+                     ?? "http://localhost:5173,https://siesturapp.grupogeshk.com,https://siesturapp.netlify.app")
                      .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 builder.Services.AddCors(options =>

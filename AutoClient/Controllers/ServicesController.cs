@@ -164,6 +164,34 @@ public class ServicesController : ControllerBase
         });
     }
 
+    [HttpPut("{id}/admin-update")]
+    public async Task<IActionResult> AdminUpdate(Guid id, [FromBody] UpdateServiceAdminDto dto)
+    {
+        var workshopId = GetCurrentWorkshopId();
+
+        var service = await _context.Services
+            .Include(s => s.Vehicle).ThenInclude(v => v.Client)
+            .FirstOrDefaultAsync(s => s.Id == id && s.Vehicle.Client.WorkshopId == workshopId);
+
+        if (service == null) return NotFound();
+
+        if (dto.EntryDate.HasValue) service.Date = dto.EntryDate.Value;
+        if (dto.ExitDate.HasValue) service.ExitDate = dto.ExitDate.Value;
+        if (dto.Mileage.HasValue) service.MileageAtService = dto.Mileage.Value;
+        if (!string.IsNullOrWhiteSpace(dto.ServiceType)) service.ServiceType = dto.ServiceType.Trim();
+        if (dto.Description != null) service.Description = dto.Description;
+        if (dto.MechanicNotes != null) service.MechanicNotes = dto.MechanicNotes;
+        if (dto.NextServiceDate.HasValue) service.NextServiceDate = dto.NextServiceDate.Value;
+        if (dto.NextServiceMileageTarget != null) service.NextServiceMileageTarget =
+            string.IsNullOrWhiteSpace(dto.NextServiceMileageTarget) ? "-" : dto.NextServiceMileageTarget.Trim();
+        if (dto.Cost.HasValue) service.Cost = dto.Cost.Value;
+        if (dto.WorkerId.HasValue) service.WorkerId = dto.WorkerId.Value;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ServiceResponseDto>>> GetAllServices()
     {

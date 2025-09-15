@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\Gio\\source\\repos\\AutoClient\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\gio\\source\\repos\\autoclient\\autoclient\\controllers\\servicescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\servicescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -34,7 +38,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -46,7 +50,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Program.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Program.cs",
+              "ToolTip": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Program.cs",
+              "RelativeToolTip": "AutoClient\\Program.cs",
+              "ViewState": "AgIAAD8AAAAAAAAAAAAAAFwAAABnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-15T15:14:44.86Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "UpdateServiceAdminDto.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\DTOs\\Services\\UpdateServiceAdminDto.cs",
               "RelativeDocumentMoniker": "AutoClient\\DTOs\\Services\\UpdateServiceAdminDto.cs",
@@ -54,12 +71,11 @@
               "RelativeToolTip": "AutoClient\\DTOs\\Services\\UpdateServiceAdminDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-15T14:47:58.724Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-15T14:47:58.724Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "ServicesController.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\ServicesController.cs",
               "RelativeDocumentMoniker": "AutoClient\\Controllers\\ServicesController.cs",
@@ -72,7 +88,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "ServiceResponseDto.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\DTOs\\Services\\ServiceResponseDto.cs",
               "RelativeDocumentMoniker": "AutoClient\\DTOs\\Services\\ServiceResponseDto.cs",
@@ -80,12 +96,11 @@
               "RelativeToolTip": "AutoClient\\DTOs\\Services\\ServiceResponseDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-15T14:17:50.341Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-15T14:17:50.341Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "AuthController.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "AutoClient\\Controllers\\AuthController.cs",
@@ -97,7 +112,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "Service.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Models\\Service.cs",
               "RelativeDocumentMoniker": "AutoClient\\Models\\Service.cs",
@@ -109,7 +124,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "ClientsController.cs",
               "DocumentMoniker": "C:\\Users\\Gio\\source\\repos\\AutoClient\\AutoClient\\Controllers\\ClientsController.cs",
               "RelativeDocumentMoniker": "AutoClient\\Controllers\\ClientsController.cs",

@@ -1,9 +1,11 @@
 ﻿using AutoClient.Data;
 using AutoClient.DTOs.Services;
 using AutoClient.Models;
+using AutoClient.Services.Email; // ⬅️ Mailer
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static AutoClient.Services.Email.IEmailTemplateRenderer; // EmailTemplateType
 
 namespace AutoClient.Controllers;
 
@@ -13,10 +15,12 @@ namespace AutoClient.Controllers;
 public class ServicesController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IClientMailer _mailer; // ⬅️ mailer inyectado
 
-    public ServicesController(ApplicationDbContext context)
+    public ServicesController(ApplicationDbContext context, IClientMailer mailer)
     {
         _context = context;
+        _mailer = mailer;
     }
 
     [HttpPost]
@@ -75,8 +79,7 @@ public class ServicesController : ControllerBase
         var workshopId = GetCurrentWorkshopId();
 
         var service = await _context.Services
-            .Include(s => s.Vehicle)
-                .ThenInclude(v => v.Client)
+            .Include(s => s.Vehicle).ThenInclude(v => v.Client)
             .Include(s => s.Worker)
             .FirstOrDefaultAsync(s => s.Id == id && s.Vehicle.Client.WorkshopId == workshopId);
 
@@ -85,14 +88,41 @@ public class ServicesController : ControllerBase
 
         service.NextServiceDate = dto.NextServiceDate;
         service.NextServiceMileageTarget = string.IsNullOrWhiteSpace(dto.NextServiceMileageTarget)
-        ? "-" : dto.NextServiceMileageTarget.Trim();
+            ? "-" : dto.NextServiceMileageTarget.Trim();
         service.Cost = dto.Cost;
-        service.MechanicNotes += $"\nFinal Notes: {dto.FinalObservations}";
+
+        if (!string.IsNullOrWhiteSpace(dto.FinalObservations))
+            service.MechanicNotes = string.IsNullOrWhiteSpace(service.MechanicNotes)
+                ? $"Final Notes: {dto.FinalObservations}"
+                : $"{service.MechanicNotes}\nFinal Notes: {dto.FinalObservations}";
+
         service.CreatedBy = dto.DeliveredBy ?? service.CreatedBy;
-        service.Description += $"\nEstado Final: {dto.VehicleState}";
+
+        if (!string.IsNullOrWhiteSpace(dto.VehicleState))
+            service.Description = string.IsNullOrWhiteSpace(service.Description)
+                ? $"Estado Final: {dto.VehicleState}"
+                : $"{service.Description}\nEstado Final: {dto.VehicleState}";
+
         service.ExitDate = dto.ExitDate ?? DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+
+        // ========= AUTOMATIC NOTIFICATION: "Auto listo" =========
+        // Trigger automatic email if automation is enabled for this workshop
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await TriggerVehicleDeliveredNotification(service.Id, workshopId);
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't block the service completion
+                Console.WriteLine($"Failed to send vehicle delivered notification: {ex.Message}");
+            }
+        });
+        // ========================================================
+
         return NoContent();
     }
 
@@ -138,8 +168,7 @@ public class ServicesController : ControllerBase
         var workshopId = GetCurrentWorkshopId();
 
         var service = await _context.Services
-            .Include(s => s.Vehicle)
-                .ThenInclude(v => v.Client)
+            .Include(s => s.Vehicle).ThenInclude(v => v.Client)
             .Include(s => s.Worker)
             .FirstOrDefaultAsync(s => s.Id == id && s.Vehicle.Client.WorkshopId == workshopId);
 
@@ -182,8 +211,8 @@ public class ServicesController : ControllerBase
         if (dto.Description != null) service.Description = dto.Description;
         if (dto.MechanicNotes != null) service.MechanicNotes = dto.MechanicNotes;
         if (dto.NextServiceDate.HasValue) service.NextServiceDate = dto.NextServiceDate.Value;
-        if (dto.NextServiceMileageTarget != null) service.NextServiceMileageTarget =
-            string.IsNullOrWhiteSpace(dto.NextServiceMileageTarget) ? "-" : dto.NextServiceMileageTarget.Trim();
+        if (dto.NextServiceMileageTarget != null)
+            service.NextServiceMileageTarget = string.IsNullOrWhiteSpace(dto.NextServiceMileageTarget) ? "-" : dto.NextServiceMileageTarget.Trim();
         if (dto.Cost.HasValue) service.Cost = dto.Cost.Value;
         if (dto.WorkerId.HasValue) service.WorkerId = dto.WorkerId.Value;
 
@@ -191,15 +220,13 @@ public class ServicesController : ControllerBase
         return NoContent();
     }
 
-
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ServiceResponseDto>>> GetAllServices()
     {
         var workshopId = GetCurrentWorkshopId();
 
         var services = await _context.Services
-            .Include(s => s.Vehicle)
-                .ThenInclude(v => v.Client)
+            .Include(s => s.Vehicle).ThenInclude(v => v.Client)
             .Include(s => s.Worker)
             .Where(s => s.Vehicle.Client.WorkshopId == workshopId)
             .OrderByDescending(s => s.Date)
@@ -221,7 +248,6 @@ public class ServicesController : ControllerBase
                 ExitDate = s.ExitDate,
                 WorkerName = s.Worker.Name,
                 Cost = s.Cost
-
             })
             .ToListAsync();
 
@@ -248,25 +274,128 @@ public class ServicesController : ControllerBase
 
         if (dto.Append == true)
         {
-            // Agregar al final (mantener historial manual en el texto).
             service.MechanicNotes = string.IsNullOrWhiteSpace(service.MechanicNotes)
                 ? newNotes
                 : $"{service.MechanicNotes}\n{newNotes}";
         }
         else
         {
-            // Reemplazar completamente las notas.
             service.MechanicNotes = newNotes;
         }
 
         await _context.SaveChangesAsync();
 
-        // Devuelvo el valor actualizado por comodidad del front
         return Ok(new
         {
             id = service.Id,
             mechanicNotes = service.MechanicNotes
         });
+    }
+
+    private async Task TriggerVehicleDeliveredNotification(Guid serviceId, Guid workshopId)
+    {
+        // Load automation settings
+        var settings = await _context.WorkshopNotificationSettings
+            .FirstOrDefaultAsync(s => s.WorkshopId == workshopId);
+
+        // If automation is disabled or no settings exist, skip
+        if (settings == null || !settings.VehicleDeliveredEnabled)
+        {
+            return;
+        }
+
+        // Load service with client info
+        var service = await _context.Services
+            .Include(s => s.Vehicle).ThenInclude(v => v.Client)
+            .Include(s => s.Worker)
+            .FirstOrDefaultAsync(s => s.Id == serviceId && s.Vehicle.Client.WorkshopId == workshopId);
+
+        if (service == null)
+        {
+            return;
+        }
+
+        var client = service.Vehicle.Client;
+        if (client == null)
+        {
+            return;
+        }
+
+        // Parse template type
+        if (!Enum.TryParse<EmailTemplateType>(settings.VehicleDeliveredTemplate, ignoreCase: true, out var templateType))
+        {
+            templateType = EmailTemplateType.CarReady;
+        }
+
+        // Check if client has email (respect safety setting)
+        if (settings.OnlyIfEmailExists && string.IsNullOrWhiteSpace(client.Email))
+        {
+            // Log as "Skipped: missing email"
+            var skipLog = new EmailLog
+            {
+                WorkshopId = workshopId,
+                ClientId = client.Id,
+                CorreoDestino = "",
+                TipoEnvio = templateType.ToString(),
+                FechaEnvio = DateTime.UtcNow,
+                Estado = false,
+                ErrorMessage = "Omitido: falta correo"
+            };
+            _context.EmailLogs.Add(skipLog);
+            await _context.SaveChangesAsync();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(client.Email))
+        {
+            return; // No email and safety is off, just skip silently
+        }
+
+        // Get workshop info
+        var workshop = await _context.Workshops.FindAsync(workshopId);
+        if (workshop == null)
+        {
+            return;
+        }
+
+        // Build template model
+        var model = new EmailTemplateModel
+        {
+            ClientName = client.Name,
+            WorkshopName = workshop.WorkshopName,
+            WorkshopPhone = workshop.Phone ?? "N/A",
+            VehiclePlate = service.Vehicle.PlateNumber,
+            VehicleBrand = service.Vehicle.Brand,
+            VehicleModel = service.Vehicle.Model,
+            ServiceDate = service.ExitDate,
+            ServiceCost = service.Cost
+        };
+
+        // Create log entry
+        var logEntry = new EmailLog
+        {
+            WorkshopId = workshopId,
+            ClientId = client.Id,
+            CorreoDestino = client.Email,
+            TipoEnvio = templateType.ToString(),
+            FechaEnvio = DateTime.UtcNow,
+            Estado = false
+        };
+
+        try
+        {
+            // Send email
+            await _mailer.SendTemplateAsync(client.Email, templateType, model);
+            logEntry.Estado = true;
+        }
+        catch (Exception ex)
+        {
+            logEntry.ErrorMessage = ex.Message.Length > 1000 ? ex.Message.Substring(0, 1000) : ex.Message;
+        }
+
+        // Save log entry
+        _context.EmailLogs.Add(logEntry);
+        await _context.SaveChangesAsync();
     }
 
     private Guid GetCurrentWorkshopId()

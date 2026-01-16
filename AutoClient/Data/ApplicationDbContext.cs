@@ -17,6 +17,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<ServiceType> ServiceTypes { get; set; }
     public DbSet<LoginOtp> LoginOtps{ get; set; }
     public DbSet<TrustedDevice> TrustedDevices{ get; set; }
+    public DbSet<EmailLog> EmailLogs { get; set; }
+    public DbSet<WorkshopNotificationSettings> WorkshopNotificationSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

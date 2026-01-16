@@ -1,7 +1,6 @@
-﻿using AutoClient.Data;
+﻿using AutoClient.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutoClient.Controllers;
 
@@ -10,92 +9,57 @@ namespace AutoClient.Controllers;
 [Route("dashboard")]
 public class DashboardController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDashboardService _dashboardService;
 
-    public DashboardController(ApplicationDbContext context)
+    public DashboardController(IDashboardService dashboardService)
     {
-        _context = context;
+        _dashboardService = dashboardService;
     }
 
     /// <summary>
-    /// Devuelve el resumen de dashboard para un rango de fechas.
+    /// Returns a complete dashboard summary for the specified date range
     /// </summary>
-    /// <param name="from">Fecha de inicio del rango</param>
-    /// <param name="to">Fecha de fin del rango</param>
+    /// <param name="from">Start date of the range (ISO format)</param>
+    /// <param name="to">End date of the range (ISO format)</param>
+    /// <param name="workerId">Optional worker ID to filter by specific worker</param>
+    /// <returns>Dashboard summary with aggregated metrics</returns>
     [HttpGet("summary")]
-    public async Task<IActionResult> GetSummary([FromQuery] DateTimeOffset from, [FromQuery] DateTimeOffset to)
+    [ProducesResponseType(typeof(AutoClient.DTOs.Dashboard.DashboardSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetSummary(
+        [FromQuery] DateTimeOffset from,
+        [FromQuery] DateTimeOffset to,
+        [FromQuery] Guid? workerId = null)
     {
-        var workshopId = GetWorkshopId();
-
-        // Servicios completados en el rango
-        var completed = await _context.Services
-            .Include(s => s.Vehicle)
-            .ThenInclude(v => v.Client)
-            .Include(s => s.Worker) // <-- Esto es necesario
-            .Where(s =>
-                s.Vehicle.Client.WorkshopId == workshopId &&
-                s.ExitDate != null &&
-                s.ExitDate.Value >= from.UtcDateTime &&
-                s.ExitDate.Value <= to.UtcDateTime)
-            .ToListAsync();
-
-        var totalRevenue = completed.Sum(s => s.Cost ?? 0);
-
-        // Servicios pendientes (sin fecha de salida)
-        var pending = await _context.Services
-            .Include(s => s.Vehicle)
-            .ThenInclude(v => v.Client)
-            .Where(s => s.Vehicle.Client.WorkshopId == workshopId && s.ExitDate == null)
-            .ToListAsync();
-
-        // Trabajador más eficiente (más servicios completados en rango)
-        var bestWorker = completed
-            .Where(s => s.WorkerId != null && s.Worker != null)
-            .GroupBy(s => s.Worker!)
-            .Select(g => new
-            {
-                Name = g.Key.Name,
-                Count = g.Count()
-            })
-            .OrderByDescending(g => g.Count)
-            .FirstOrDefault();
-
-
-        // Servicios más realizados
-        var topServices = completed
-            .GroupBy(s => s.ServiceType)
-            .Select(g => new { Service = g.Key, Count = g.Count() })
-            .OrderByDescending(g => g.Count)
-            .Take(5)
-            .ToList();
-
-        return Ok(new
+        // Validate date range
+        if (from > to)
         {
-            Range = new
-            {
-                From = from.ToString("yyyy-MM-dd"),
-                To = to.ToString("yyyy-MM-dd")
-            },
-            TotalCompleted = completed.Count,
-            TotalRevenue = totalRevenue,
-            PendingServices = pending.Select(s => new
-            {
-                s.Id,
-                s.ServiceType,
-                s.Description,
-                s.Date,
-                s.MileageAtService,
-                ClientName = s.Vehicle.Client.Name,
-                Plate = s.Vehicle.PlateNumber
-            }),
-            TopWorker = bestWorker,
-            TopServices = topServices
-        });
+            return BadRequest(new { message = "Start date must be before end date" });
+        }
+
+        // Validate date range is not too large (prevent performance issues)
+        if ((to - from).TotalDays > 365)
+        {
+            return BadRequest(new { message = "Date range cannot exceed 365 days" });
+        }
+
+        var workshopId = GetWorkshopId();
+        var summary = await _dashboardService.GetSummaryAsync(
+            workshopId,
+            from.UtcDateTime,
+            to.UtcDateTime,
+            workerId);
+
+        return Ok(summary);
     }
 
     private Guid GetWorkshopId()
     {
         var claim = User.FindFirst("workshop_id")?.Value;
-        return Guid.Parse(claim!);
+        if (claim == null)
+        {
+            throw new UnauthorizedAccessException("Workshop ID not found in token");
+        }
+        return Guid.Parse(claim);
     }
 }

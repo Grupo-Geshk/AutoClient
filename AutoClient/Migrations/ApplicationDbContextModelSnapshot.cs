@@ -60,6 +60,45 @@ namespace AutoClient.Migrations
                     b.ToTable("Clients");
                 });
 
+            modelBuilder.Entity("AutoClient.Models.EmailLog", b =>
+                {
+                    b.Property<int>("IdLog")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdLog"));
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CorreoDestino")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("FechaEnvio")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TipoEnvio")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("WorkshopId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("IdLog");
+
+                    b.ToTable("EmailLogs");
+                });
+
             modelBuilder.Entity("AutoClient.Models.Invoice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -383,6 +422,41 @@ namespace AutoClient.Migrations
                     b.ToTable("Workshops");
                 });
 
+            modelBuilder.Entity("AutoClient.Models.WorkshopNotificationSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("OnlyIfEmailExists")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("VehicleDeliveredEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("VehicleDeliveredTemplate")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("WorkshopId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkshopId");
+
+                    b.ToTable("WorkshopNotificationSettings");
+                });
+
             modelBuilder.Entity("LoginOtp", b =>
                 {
                     b.Property<Guid>("Id")
@@ -525,6 +599,17 @@ namespace AutoClient.Migrations
                 {
                     b.HasOne("AutoClient.Models.Workshop", "Workshop")
                         .WithMany("Workers")
+                        .HasForeignKey("WorkshopId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workshop");
+                });
+
+            modelBuilder.Entity("AutoClient.Models.WorkshopNotificationSettings", b =>
+                {
+                    b.HasOne("AutoClient.Models.Workshop", "Workshop")
+                        .WithMany()
                         .HasForeignKey("WorkshopId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

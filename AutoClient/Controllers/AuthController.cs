@@ -1,6 +1,7 @@
 ﻿using AutoClient.Data;
 using AutoClient.DTOs.Auth;
 using AutoClient.Models;
+using AutoClient.Services.Email; // add
 using AutoClient.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,12 +22,14 @@ public class AuthController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly ITokenService _tokenService;
     private readonly SmtpSettings _smtp;
+    private readonly IClientMailer _mailer;
 
-    public AuthController(ApplicationDbContext context, ITokenService tokenService, IOptions<SmtpSettings> smtp)
+    public AuthController(ApplicationDbContext context, ITokenService tokenService, IOptions<SmtpSettings> smtp, IClientMailer mailer)
     {
         _context = context;
         _tokenService = tokenService;
         _smtp = smtp.Value;
+        _mailer = mailer;
     }
 
     // Login directo SIN OTP/Email (uso temporal / admin)
@@ -189,20 +192,7 @@ public class AuthController : ControllerBase
 
     private async Task SendOtpEmailAsync(string toEmail, string code, string workshopName)
     {
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_smtp.SenderName, _smtp.SenderEmail));
-        message.To.Add(MailboxAddress.Parse(toEmail));
-        message.Subject = $"Código de verificación - {workshopName}";
-        message.Body = new TextPart("plain")
-        {
-            Text = $"Tu código de verificación es: {code}\n\nEste código expira en 10 minutos."
-        };
-
-        using var client = new SmtpClient();
-        await client.ConnectAsync(_smtp.Host, _smtp.Port, MailKit.Security.SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(_smtp.Username, _smtp.Password);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+        await _mailer.SendOtpAsync(toEmail, workshopName, code);
     }
 
     private string HashPassword(string password)

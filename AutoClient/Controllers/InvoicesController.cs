@@ -31,9 +31,19 @@ public class InvoicesController : ControllerBase
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
+        _logger.LogInformation(
+            "Creating invoice. Client: {ClientName}, SendEmail: {SendEmail}, Email: {ClientEmail}, Items: {ItemCount}",
+            dto.client?.name ?? "(none)",
+            dto.sendEmail,
+            string.IsNullOrWhiteSpace(dto.client?.email) ? "(none)" : dto.client.email,
+            dto.items?.Count ?? 0);
+
         try
         {
             var res = await _svc.CreateAsync(dto, ct);
+            _logger.LogInformation(
+                "Invoice created successfully. Number: {InvoiceNumber}, Id: {InvoiceId}, PdfUrl: {PdfUrl}",
+                res.number, res.id, res.pdfUrl);
             return Ok(res);
         }
         catch (Exception ex)
@@ -52,9 +62,16 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<InvoiceResultDto>> CreateFromService(Guid serviceId, [FromBody] InvoiceCreateDto? overrides, CancellationToken ct)
     {
+        _logger.LogInformation(
+            "Creating invoice from service. ServiceId: {ServiceId}, HasOverrides: {HasOverrides}",
+            serviceId, overrides != null);
+
         try
         {
             var res = await _svc.CreateFromServiceAsync(serviceId, overrides, ct);
+            _logger.LogInformation(
+                "Invoice from service created successfully. ServiceId: {ServiceId}, Number: {InvoiceNumber}, Id: {InvoiceId}",
+                serviceId, res.number, res.id);
             return Ok(res);
         }
         catch (Exception ex)

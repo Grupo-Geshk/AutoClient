@@ -1,0 +1,208 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\.env||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\.env||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\services\\email\\clientmailer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\services\\email\\clientmailer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\settings\\smtpsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\settings\\smtpsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\controllers\\dashboardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\dashboardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\controllers\\notificationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\notificationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\models\\service.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\models\\service.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\controllers\\servicescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\servicescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\services\\email\\iclientmailer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\services\\email\\iclientmailer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|c:\\users\\perso\\code\\autoclient\\back\\autoclient\\autoclient\\controllers\\workerscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C197E376-7BCF-42F4-8FCC-24531D0744B9}|AutoClient\\AutoClient.csproj|solutionrelative:autoclient\\controllers\\workerscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1517695089:0:{83107a3e-496a-485e-b455-16ddb978e55e}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": ".env",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\.env",
+              "RelativeDocumentMoniker": "AutoClient\\.env",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\.env",
+              "RelativeToolTip": "AutoClient\\.env",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-01-24T14:44:07.264Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "SmtpSettings.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Settings\\SmtpSettings.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Settings\\SmtpSettings.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Settings\\SmtpSettings.cs",
+              "RelativeToolTip": "AutoClient\\Settings\\SmtpSettings.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:55:53.542Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "NotificationsController.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\NotificationsController.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Controllers\\NotificationsController.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\NotificationsController.cs",
+              "RelativeToolTip": "AutoClient\\Controllers\\NotificationsController.cs",
+              "ViewState": "AgIAABQBAAAAAAAAAAAIwCABAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:08.544Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ServicesController.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\ServicesController.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Controllers\\ServicesController.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\ServicesController.cs",
+              "RelativeToolTip": "AutoClient\\Controllers\\ServicesController.cs",
+              "ViewState": "AgIAABcBAAAAAAAAAAAIwBkBAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:09.079Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Controllers\\AuthController.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "AutoClient\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAALAAAAAAAAAAAAApwMsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:09.088Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Program.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Program.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Program.cs",
+              "RelativeToolTip": "AutoClient\\Program.cs",
+              "ViewState": "AgIAACwAAAAAAAAAAAAewDYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:09.088Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ClientMailer.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Services\\Email\\ClientMailer.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Services\\Email\\ClientMailer.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Services\\Email\\ClientMailer.cs",
+              "RelativeToolTip": "AutoClient\\Services\\Email\\ClientMailer.cs",
+              "ViewState": "AgIAADsAAAAAAAAAAAA+wD4AAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:09.101Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "IClientMailer.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Services\\Email\\IClientMailer.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Services\\Email\\IClientMailer.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Services\\Email\\IClientMailer.cs",
+              "RelativeToolTip": "AutoClient\\Services\\Email\\IClientMailer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:09.101Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "WorkersController.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\WorkersController.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Controllers\\WorkersController.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\WorkersController.cs",
+              "RelativeToolTip": "AutoClient\\Controllers\\WorkersController.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:09.118Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "DashboardController.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\DashboardController.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Controllers\\DashboardController.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Controllers\\DashboardController.cs",
+              "RelativeToolTip": "AutoClient\\Controllers\\DashboardController.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAAEEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:09.118Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Service.cs",
+              "DocumentMoniker": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Models\\Service.cs",
+              "RelativeDocumentMoniker": "AutoClient\\Models\\Service.cs",
+              "ToolTip": "C:\\Users\\perso\\code\\AutoClient\\Back\\AutoClient\\AutoClient\\Models\\Service.cs",
+              "RelativeToolTip": "AutoClient\\Models\\Service.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAAqwCEAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-24T11:43:09.134Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

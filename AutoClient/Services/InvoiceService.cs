@@ -148,39 +148,63 @@ public class InvoiceService : IInvoiceService
         await _db.SaveChangesAsync(ct);
 
         // 6) Email opcional
-        if (dto.sendEmail && !string.IsNullOrWhiteSpace(inv.ClientEmail))
+        if (dto.sendEmail)
         {
-            try
+            if (string.IsNullOrWhiteSpace(inv.ClientEmail))
             {
-                var vm = new InvoiceEmailView
-                {
-                    InvoiceNumber = inv.InvoiceNumber.ToString(),
-                    ClientName = inv.ClientName,
-                    ClientEmail = inv.ClientEmail,
-                    ClientAddress = inv.ClientAddress,
-                    Day = dto.date.day,
-                    Month = dto.date.month,
-                    Year = dto.date.year,
-                    PaymentType = dto.paymentType,
-                    ReceivedBy = dto.receivedBy,
-                    TaxRate = dto.taxRate,
-                    Items = inv.Items.Select(it => new InvoiceEmailItem
-                    {
-                        Qty = it.Quantity,
-                        Description = it.Description,
-                        UnitPrice = it.UnitPrice
-                    }).ToList(),
-                    Subtotal = inv.Subtotal,
-                    Tax = inv.Tax,
-                    Total = inv.Total
-                };
+                _log.LogWarning(
+                    "Email requested but client email is empty. InvoiceNumber: {InvoiceNumber}, ClientName: {ClientName}",
+                    inv.InvoiceNumber, inv.ClientName);
+            }
+            else
+            {
+                _log.LogInformation(
+                    "Sending invoice email. InvoiceNumber: {InvoiceNumber}, Recipient: {ClientEmail}",
+                    inv.InvoiceNumber, inv.ClientEmail);
 
-                await _mailer.SendAsync(vm, pdfBytes, true, ct);
+                try
+                {
+                    var vm = new InvoiceEmailView
+                    {
+                        InvoiceNumber = inv.InvoiceNumber.ToString(),
+                        ClientName = inv.ClientName,
+                        ClientEmail = inv.ClientEmail,
+                        ClientAddress = inv.ClientAddress,
+                        Day = dto.date.day,
+                        Month = dto.date.month,
+                        Year = dto.date.year,
+                        PaymentType = dto.paymentType,
+                        ReceivedBy = dto.receivedBy,
+                        TaxRate = dto.taxRate,
+                        Items = inv.Items.Select(it => new InvoiceEmailItem
+                        {
+                            Qty = it.Quantity,
+                            Description = it.Description,
+                            UnitPrice = it.UnitPrice
+                        }).ToList(),
+                        Subtotal = inv.Subtotal,
+                        Tax = inv.Tax,
+                        Total = inv.Total
+                    };
+
+                    await _mailer.SendAsync(vm, pdfBytes, true, ct);
+                    _log.LogInformation(
+                        "Invoice email sent successfully. InvoiceNumber: {InvoiceNumber}, Recipient: {ClientEmail}",
+                        inv.InvoiceNumber, inv.ClientEmail);
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex,
+                        "Failed to send invoice email. InvoiceNumber: {InvoiceNumber}, Recipient: {ClientEmail}",
+                        inv.InvoiceNumber, inv.ClientEmail);
+                }
             }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "Error enviando correo de factura");
-            }
+        }
+        else
+        {
+            _log.LogInformation(
+                "Email not requested for invoice. InvoiceNumber: {InvoiceNumber}",
+                inv.InvoiceNumber);
         }
 
         return new InvoiceResultDto(inv.Id, inv.InvoiceNumber, inv.PdfUrl);

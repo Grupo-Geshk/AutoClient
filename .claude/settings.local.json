@@ -5,7 +5,9 @@
       "Bash(dotnet ef database update:*)",
       "Bash(dotnet build:*)",
       "Bash(Select-String -Pattern \"\\(error|Build\\)\")",
-      "Bash(Select-Object -Last 15)"
+      "Bash(Select-Object -Last 15)",
+      "Bash(dir:*)",
+      "Bash(tree:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

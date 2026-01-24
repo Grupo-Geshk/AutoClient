@@ -1,19 +1,13 @@
-﻿using AutoClient.Settings;
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using Microsoft.Extensions.Options;
-using MimeKit;
-
 namespace AutoClient.Services.Email;
 
 public class ClientMailer : IClientMailer
 {
-    private readonly SmtpSettings _cfg;
+    private readonly IEmailSender _emailSender;
     private readonly IEmailTemplateRenderer _templateRenderer;
 
-    public ClientMailer(IOptions<SmtpSettings> cfg, IEmailTemplateRenderer templateRenderer)
+    public ClientMailer(IEmailSender emailSender, IEmailTemplateRenderer templateRenderer)
     {
-        _cfg = cfg.Value;
+        _emailSender = emailSender;
         _templateRenderer = templateRenderer;
     }
 
@@ -23,11 +17,11 @@ public class ClientMailer : IClientMailer
         var html = $@"
           <div style='font-family:Segoe UI,Arial,sans-serif;font-size:14px'>
             <h2>Código de verificación</h2>
-            <p>Tu código para <b>{workshopName}</b> es: 
+            <p>Tu código para <b>{workshopName}</b> es:
               <b style='font-size:18px; letter-spacing:2px'>{code}</b></p>
             <p>Este código expira en 10 minutos.</p>
           </div>";
-        return SendAsync(to, subject, html, ct);
+        return _emailSender.SendAsync(to, subject, html, ct: ct);
     }
 
     public Task SendServiceCompletedAsync(
@@ -44,7 +38,7 @@ public class ClientMailer : IClientMailer
             <p>Costo del servicio: <b>{price}</b></p>
             <p>¡Te esperamos!</p>
           </div>";
-        return SendAsync(to, subject, html, ct);
+        return _emailSender.SendAsync(to, subject, html, ct: ct);
     }
 
     public Task SendUpcomingServiceReminderAsync(
@@ -60,30 +54,12 @@ public class ClientMailer : IClientMailer
             <p>Tu vehículo con placa <b>{plate}</b> tiene programado el próximo servicio para el <b>{dateStr}</b>{mileage}.</p>
             <p>Agenda tu cita para evitar contratiempos.</p>
           </div>";
-        return SendAsync(to, subject, html, ct);
+        return _emailSender.SendAsync(to, subject, html, ct: ct);
     }
 
     public Task SendTemplateAsync(string to, EmailTemplateType templateType, EmailTemplateModel model, CancellationToken ct = default)
     {
         var (subject, htmlBody) = _templateRenderer.Render(templateType, model);
-        return SendAsync(to, subject, htmlBody, ct);
-    }
-
-    private async Task SendAsync(string to, string subject, string htmlBody, CancellationToken ct)
-    {
-        var msg = new MimeMessage();
-        msg.From.Add(new MailboxAddress(_cfg.SenderName, _cfg.SenderEmail));
-        msg.To.Add(MailboxAddress.Parse(to));
-        msg.Subject = subject;
-        msg.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
-
-        // Elige automáticamente el modo seguro correcto según el puerto
-        var secure = _cfg.Port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
-
-        using var smtp = new SmtpClient();
-        await smtp.ConnectAsync(_cfg.Host, _cfg.Port, secure, ct);
-        await smtp.AuthenticateAsync(_cfg.Username, _cfg.Password, ct);
-        await smtp.SendAsync(msg, ct);
-        await smtp.DisconnectAsync(true, ct);
+        return _emailSender.SendAsync(to, subject, htmlBody, ct: ct);
     }
 }

@@ -266,7 +266,7 @@ public class NotificationsController : ControllerBase
         {
             ClientName = client.Name,
             WorkshopName = workshop.WorkshopName,
-            WorkshopPhone = "66238950"
+            WorkshopPhone = workshop.Phone ?? "N/A"
         };
 
         if (service != null)
@@ -347,7 +347,7 @@ public class NotificationsController : ControllerBase
         {
             ClientName = client.Name,
             WorkshopName = workshop.WorkshopName,
-            WorkshopPhone = "66238950",
+            WorkshopPhone = workshop.Phone ?? "N/A",
             VehiclePlate = service.Vehicle.PlateNumber,
             VehicleBrand = service.Vehicle.Brand,
             VehicleModel = service.Vehicle.Model,

@@ -1,18 +1,11 @@
-﻿using AutoClient.Data;
+using AutoClient.Data;
 using AutoClient.DTOs.Invoices;
 using AutoClient.Models;
-using AutoClient.Settings;
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using MimeKit;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using Npgsql;
-using System.IO;
-using System.Linq;
 using AutoClient.Services.Email;
 
 namespace AutoClient.Services;
@@ -22,19 +15,16 @@ public class InvoiceService : IInvoiceService
     private readonly ApplicationDbContext _db;
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<InvoiceService> _log;
-    private readonly SmtpSettings _smtp;
     private readonly IInvoiceMailer _mailer;
 
     public InvoiceService(
         ApplicationDbContext db,
         IWebHostEnvironment env,
-        IOptions<SmtpSettings> smtpOptions,
         ILogger<InvoiceService> log,
         IInvoiceMailer mailer)
     {
         _db = db;
         _env = env;
-        _smtp = smtpOptions.Value;
         _log = log;
         _mailer = mailer;
 
@@ -612,23 +602,4 @@ public class InvoiceService : IInvoiceService
         }
     }
 
-    // ========= Email “simple” (no se usa si trabajas con IInvoiceMailer) =========
-    private async Task SendEmailAsync(Invoice inv, byte[] pdf)
-    {
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_smtp.SenderName ?? "AutoClient", _smtp.SenderEmail));
-        message.To.Add(new MailboxAddress(inv.ClientName, inv.ClientEmail));
-        message.Bcc.Add(new MailboxAddress("Auto Servicios Diógenes", "zerokay02@gmail.com"));
-        message.Subject = $"Factura #{inv.InvoiceNumber} - Auto Servicios Diógenes";
-
-        var builder = new BodyBuilder { TextBody = $"Adjuntamos la factura #{inv.InvoiceNumber}.\nTotal: {inv.Total:0.00}" };
-        builder.Attachments.Add($"Factura_{inv.InvoiceNumber}.pdf", pdf, new ContentType("application", "pdf"));
-        message.Body = builder.ToMessageBody();
-
-        using var smtp = new SmtpClient();
-        await smtp.ConnectAsync(_smtp.Host, _smtp.Port, SecureSocketOptions.StartTls);
-        await smtp.AuthenticateAsync(_smtp.Username, _smtp.Password);
-        await smtp.SendAsync(message);
-        await smtp.DisconnectAsync(true);
-    }
 }

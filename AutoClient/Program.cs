@@ -30,16 +30,26 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers()
     .AddFluentValidation(cfg => cfg.RegisterValidatorsFromAssemblyContaining<Program>());
 
-// ---------- SMTP (desde env vars) ----------
-builder.Services.Configure<SmtpSettings>(options =>
+// ---------- Resend Email Configuration ----------
+builder.Services.Configure<ResendEmailSettings>(options =>
 {
-    options.Host = Environment.GetEnvironmentVariable("Smtp__Host") ?? "";
-    options.Port = int.TryParse(Environment.GetEnvironmentVariable("Smtp__Port"), out var port) ? port : 587;
-    options.Username = Environment.GetEnvironmentVariable("Smtp__Username") ?? "";
-    options.Password = Environment.GetEnvironmentVariable("Smtp__Password") ?? "";
-    options.SenderName = Environment.GetEnvironmentVariable("Smtp__SenderName") ?? "AutoClient";
-    options.SenderEmail = Environment.GetEnvironmentVariable("Smtp__SenderEmail") ?? "no-reply@example.com";
+    var emailSection = builder.Configuration.GetSection("Email");
+    options.ApiKey = Environment.GetEnvironmentVariable("Email__ApiKey")
+        ?? emailSection["ApiKey"]
+        ?? "";
+    options.BaseUrl = Environment.GetEnvironmentVariable("Email__BaseUrl")
+        ?? emailSection["BaseUrl"]
+        ?? "https://api.resend.com";
+    options.FromAddress = Environment.GetEnvironmentVariable("Email__FromAddress")
+        ?? emailSection["FromAddress"]
+        ?? "";
+    options.FromName = Environment.GetEnvironmentVariable("Email__FromName")
+        ?? emailSection["FromName"]
+        ?? "AutoClient";
 });
+
+// Register ResendEmailSender with HttpClient
+builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
 
 // ---------- JWT ----------
 var jwtKey = Environment.GetEnvironmentVariable("Jwt__Key")

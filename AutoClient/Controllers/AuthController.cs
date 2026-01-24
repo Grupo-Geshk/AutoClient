@@ -1,16 +1,12 @@
-﻿using AutoClient.Data;
+using AutoClient.Data;
 using AutoClient.DTOs.Auth;
 using AutoClient.Models;
-using AutoClient.Services.Email; // add
-using AutoClient.Settings;
+using AutoClient.Services.Email;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using MailKit.Net.Smtp;
 using AutoClient.Services;
 
 namespace AutoClient.Controllers;
@@ -21,14 +17,12 @@ public class AuthController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly ITokenService _tokenService;
-    private readonly SmtpSettings _smtp;
     private readonly IClientMailer _mailer;
 
-    public AuthController(ApplicationDbContext context, ITokenService tokenService, IOptions<SmtpSettings> smtp, IClientMailer mailer)
+    public AuthController(ApplicationDbContext context, ITokenService tokenService, IClientMailer mailer)
     {
         _context = context;
         _tokenService = tokenService;
-        _smtp = smtp.Value;
         _mailer = mailer;
     }
 

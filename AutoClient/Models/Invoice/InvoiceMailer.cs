@@ -1,55 +1,55 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using AutoClient.Settings;
+using AutoClient.Services.Email;
 
 namespace AutoClient.Services.Email
 {
     /// <summary>
-    /// Implementación con MailKit/MimeKit para enviar el correo de factura.
+    /// Implementation using IEmailSender to send invoice emails via Resend API.
     /// </summary>
     public sealed class InvoiceMailer : IInvoiceMailer
     {
-        private readonly SmtpSettings _smtp;
+        private readonly IEmailSender _emailSender;
 
-        public InvoiceMailer(IOptions<SmtpSettings> smtpOpt)
-            => _smtp = smtpOpt.Value;
+        public InvoiceMailer(IEmailSender emailSender)
+            => _emailSender = emailSender;
 
         public async Task SendAsync(InvoiceEmailView inv, byte[] pdfBytes, bool sendEmail, CancellationToken ct = default)
         {
             if (!sendEmail) return;
             if (string.IsNullOrWhiteSpace(inv.ClientEmail)) return;
 
-            var msg = new MimeMessage();
-            msg.From.Add(new MailboxAddress(_smtp.SenderName, _smtp.SenderEmail));
-            msg.To.Add(new MailboxAddress(inv.ClientName ?? "", inv.ClientEmail));
-            // Copia interna
-            msg.Bcc.Add(MailboxAddress.Parse("autoserviciosdiogenes@gmail.com"));
-            msg.Subject = $"Factura {inv.InvoiceNumber} - Auto Servicios Diógenes";
+            var subject = $"Factura {inv.InvoiceNumber} - Auto Servicios Diógenes";
 
-            var builder = new BodyBuilder();
-
-            // Usa URL pública del logo (simple y compatible). Si prefieres CID, puedes adaptarlo.
+            // Use a public URL for the logo
             var logoUrl = "https://github.com/Grupo-Geshk/AutoClient-front/blob/main/public/ASD.jpeg?raw=true";
 
-            builder.HtmlBody = BuildHtml(inv, logoUrl);
-            builder.TextBody = BuildText(inv);
+            var htmlBody = BuildHtml(inv, logoUrl);
+            var textBody = BuildText(inv);
 
+            // Prepare attachment if PDF provided
+            var attachments = new List<EmailAttachment>();
             if (pdfBytes?.Length > 0)
-                builder.Attachments.Add($"Factura_{inv.InvoiceNumber}.pdf", pdfBytes, new ContentType("application", "pdf"));
+            {
+                attachments.Add(new EmailAttachment
+                {
+                    FileName = $"Factura_{inv.InvoiceNumber}.pdf",
+                    Content = pdfBytes,
+                    ContentType = "application/pdf"
+                });
+            }
 
-            msg.Body = builder.ToMessageBody();
+            // Internal BCC copy
+            var bccList = new[] { "autoserviciosdiogenes@gmail.com" };
 
-            using var smtp = new SmtpClient();
-            await smtp.ConnectAsync(_smtp.Host, _smtp.Port, SecureSocketOptions.StartTls, ct);
-            if (!string.IsNullOrEmpty(_smtp.Username))
-                await smtp.AuthenticateAsync(_smtp.Username, _smtp.Password, ct);
-
-            await smtp.SendAsync(msg, ct);
-            await smtp.DisconnectAsync(true, ct);
+            await _emailSender.SendAsync(
+                to: inv.ClientEmail,
+                subject: subject,
+                htmlBody: htmlBody,
+                textBody: textBody,
+                attachments: attachments,
+                bcc: bccList,
+                ct: ct);
         }
 
         private static string Money(decimal v)

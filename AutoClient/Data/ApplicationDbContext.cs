@@ -19,6 +19,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<TrustedDevice> TrustedDevices{ get; set; }
     public DbSet<EmailLog> EmailLogs { get; set; }
     public DbSet<WorkshopNotificationSettings> WorkshopNotificationSettings { get; set; }
+    public DbSet<Quote> Quotes { get; set; }
+    public DbSet<QuoteItem> QuoteItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,5 +59,25 @@ public class ApplicationDbContext : DbContext
             .WithOne(st => st.Workshop)
             .HasForeignKey(st => st.WorkshopId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Workshop>()
+            .HasMany<Quote>()
+            .WithOne(q => q.Workshop)
+            .HasForeignKey(q => q.WorkshopId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Quote>()
+            .HasMany(q => q.Items)
+            .WithOne(i => i.Quote)
+            .HasForeignKey(i => i.QuoteId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Quote>()
+            .HasIndex(q => q.ShareToken)
+            .IsUnique();
+
+        modelBuilder.Entity<Quote>()
+            .HasIndex(q => new { q.WorkshopId, q.QuoteNumber })
+            .IsUnique();
     }
 }

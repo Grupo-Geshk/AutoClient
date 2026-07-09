@@ -64,6 +64,43 @@ public class VehiclesController : ControllerBase
         });
     }
 
+    // GET /vehicles/{id}
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<VehicleDetailDto>> GetById(Guid id)
+    {
+        var workshopId = GetCurrentWorkshopId();
+
+        var vehicle = await _context.Vehicles
+            .Include(v => v.Client)
+            .Where(v => v.Id == id && v.Client.WorkshopId == workshopId)
+            .FirstOrDefaultAsync();
+
+        if (vehicle == null)
+            return NotFound();
+
+        var lastMileage = await _context.Services
+            .Where(s => s.VehicleId == vehicle.Id)
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => s.MileageAtService)
+            .FirstOrDefaultAsync();
+
+        return Ok(new VehicleDetailDto
+        {
+            Id = vehicle.Id,
+            ClientId = vehicle.ClientId,
+            PlateNumber = vehicle.PlateNumber,
+            Brand = vehicle.Brand,
+            Model = vehicle.Model,
+            Year = vehicle.Year,
+            Color = vehicle.Color,
+            VIN = vehicle.VIN,
+            MileageAtRegistration = vehicle.MileageAtRegistration,
+            ImageUrl = vehicle.ImageUrl,
+            ClientName = vehicle.Client.Name,
+            LastMileage = lastMileage
+        });
+    }
+
     // GET /vehicles/by-plate?plate=XXX123
     [HttpGet("by-plate")]
     public async Task<ActionResult<VehicleDetailDto>> GetByPlate([FromQuery] string plate)
@@ -126,9 +163,8 @@ public class VehiclesController : ControllerBase
                 Brand = v.Brand,
                 Year = v.Year,
                 Color = v.Color,
-                ImageUrl= v.ImageUrl,
+                ImageUrl = v.ImageUrl,
                 ClientId = v.ClientId,
-
             })
             .ToListAsync();
 

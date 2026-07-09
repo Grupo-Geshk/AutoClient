@@ -81,8 +81,9 @@ public class ClientsController : ControllerBase
                 Id = c.Id,
                 Name = c.Name,
                 Phone = c.Phone,
-                Email= c.Email,
-                
+                Email = c.Email,
+                Address = c.Address,
+                VehiclesCount = c.Vehicles.Count()
             })
             .ToListAsync();
 

@@ -1,8 +1,9 @@
-﻿namespace AutoClient.DTOs.Vehicles;
+namespace AutoClient.DTOs.Vehicles;
 
 public class VehicleDetailDto
 {
     public Guid Id { get; set; }
+    public Guid ClientId { get; set; }
     public string PlateNumber { get; set; }
     public string Brand { get; set; }
     public string Model { get; set; }

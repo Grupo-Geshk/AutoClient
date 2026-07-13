@@ -8,7 +8,10 @@ public class Invoice
 {
     [Key] public Guid Id { get; set; } = Guid.NewGuid();
 
-    public Guid? ServiceId { get; set; } 
+    public Guid? ServiceId { get; set; }
+    // Taller emisor: permite renderizar el documento con su identidad
+    // (facturas antiguas sin taller usan el encabezado legado)
+    public Guid? WorkshopId { get; set; }
     public long InvoiceNumber { get; set; }
 
     public DateOnly InvoiceDate { get; set; }
@@ -21,6 +24,9 @@ public class Invoice
     // Pago
     [MaxLength(20)] public string PaymentType { get; set; } = "contado"; // contado|credito
     [MaxLength(120)] public string ReceivedBy { get; set; } = "";
+
+    // Notas para el cliente (visibles en el documento, igual que en cotizaciones)
+    [MaxLength(2000)] public string Notes { get; set; } = "";
 
     // Totales
     [Column(TypeName = "numeric(12,2)")] public decimal Subtotal { get; set; }

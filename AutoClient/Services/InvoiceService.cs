@@ -31,7 +31,10 @@ public class InvoiceService : IInvoiceService
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
-    public async Task<InvoiceResultDto> CreateFromServiceAsync(Guid serviceId, InvoiceCreateDto? overrides, CancellationToken ct = default)
+    // Cliente compartido para descargar el logo del taller al generar PDFs
+    private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
+
+    public async Task<InvoiceResultDto> CreateFromServiceAsync(Guid serviceId, InvoiceCreateDto? overrides, Guid? workshopId = null, CancellationToken ct = default)
     {
         var service = await _db.Services
             .Include(s => s.Vehicle)!.ThenInclude(v => v.Client)
@@ -80,11 +83,16 @@ public class InvoiceService : IInvoiceService
                 serviceId = serviceId
             };
 
-        return await CreateAsync(dto, ct);
+        return await CreateAsync(dto, workshopId, ct);
     }
 
-    public async Task<InvoiceResultDto> CreateAsync(InvoiceCreateDto dto, CancellationToken ct = default)
+    public async Task<InvoiceResultDto> CreateAsync(InvoiceCreateDto dto, Guid? workshopId = null, CancellationToken ct = default)
     {
+        // 0) identidad del taller emisor (perfil configurado por el usuario)
+        Workshop? workshop = workshopId.HasValue
+            ? await _db.Workshops.AsNoTracking().FirstOrDefaultAsync(w => w.Id == workshopId.Value, ct)
+            : null;
+
         // 1) correlativo
         var nextNumber = await NextInvoiceNumberAsync(ct);
 
@@ -93,13 +101,15 @@ public class InvoiceService : IInvoiceService
         var inv = new Invoice
         {
             ServiceId = dto.serviceId,
+            WorkshopId = workshop?.Id,
             InvoiceNumber = nextNumber,
             InvoiceDate = date,
             ClientName = dto.client.name ?? string.Empty,
             ClientEmail = dto.client.email ?? string.Empty,
             ClientAddress = dto.client.address ?? string.Empty,
             PaymentType = dto.paymentType ?? "contado",
-            ReceivedBy = dto.receivedBy ?? string.Empty
+            ReceivedBy = dto.receivedBy ?? string.Empty,
+            Notes = dto.notes?.Trim() ?? string.Empty
         };
 
         // 3) items + totales
@@ -129,9 +139,9 @@ public class InvoiceService : IInvoiceService
         // 4) PDF: respetar el template solicitado
         byte[] pdfBytes = (dto.template ?? "styled").ToLowerInvariant() switch
         {
-            "preprinted" => await RenderPreprintedAsync(inv),
-            "digital" => await RenderDigitalAsync(inv),
-            _ => await RenderStyledAsync(inv) // "styled" por defecto
+            "preprinted" => await RenderPreprintedAsync(inv, workshop),
+            "digital" => await RenderDigitalAsync(inv, workshop),
+            _ => await RenderStyledAsync(inv, workshop) // "styled" por defecto
         };
 
 
@@ -166,6 +176,12 @@ public class InvoiceService : IInvoiceService
                 {
                     var vm = new InvoiceEmailView
                     {
+                        WorkshopName = workshop?.WorkshopName,
+                        WorkshopRuc = workshop?.Ruc,
+                        WorkshopDv = workshop?.Dv,
+                        WorkshopDescription = workshop?.BusinessDescription,
+                        WorkshopLogo = workshop?.Logo,
+                        WorkshopNotificationEmail = workshop?.NotificationEmail,
                         InvoiceNumber = inv.InvoiceNumber.ToString(),
                         ClientName = inv.ClientName,
                         ClientEmail = inv.ClientEmail,
@@ -175,6 +191,7 @@ public class InvoiceService : IInvoiceService
                         Year = dto.date.year,
                         PaymentType = dto.paymentType,
                         ReceivedBy = dto.receivedBy,
+                        Notes = inv.Notes,
                         TaxRate = dto.taxRate,
                         Items = inv.Items.Select(it => new InvoiceEmailItem
                         {
@@ -210,6 +227,70 @@ public class InvoiceService : IInvoiceService
         return new InvoiceResultDto(inv.Id, inv.InvoiceNumber, inv.PdfUrl);
     }
 
+    // Historial: facturas del taller (las legadas sin WorkshopId también se
+    // incluyen para no perder el histórico anterior a la migración)
+    public async Task<List<InvoiceSummaryDto>> ListAsync(Guid workshopId, string? paymentType, string? search, CancellationToken ct = default)
+    {
+        var query = _db.Invoices.AsNoTracking()
+            .Where(i => i.WorkshopId == workshopId || i.WorkshopId == null);
+
+        if (!string.IsNullOrWhiteSpace(paymentType))
+            query = query.Where(i => i.PaymentType == paymentType);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(i =>
+                EF.Functions.ILike(i.ClientName, $"%{term}%") ||
+                i.InvoiceNumber.ToString().Contains(term));
+        }
+
+        return await query
+            .OrderByDescending(i => i.InvoiceNumber)
+            .Select(i => new InvoiceSummaryDto(
+                i.Id,
+                i.InvoiceNumber,
+                i.InvoiceDate,
+                i.ClientName,
+                i.PaymentType,
+                i.Total,
+                i.Items.Count,
+                i.CreatedAt,
+                i.ServiceId))
+            .ToListAsync(ct);
+    }
+
+    public async Task<InvoiceDetailDto?> GetAsync(Guid invoiceId, Guid workshopId, CancellationToken ct = default)
+    {
+        var inv = await _db.Invoices.AsNoTracking()
+            .Include(i => i.Items)
+            .FirstOrDefaultAsync(i => i.Id == invoiceId && (i.WorkshopId == workshopId || i.WorkshopId == null), ct);
+
+        if (inv is null) return null;
+
+        return new InvoiceDetailDto(
+            inv.Id,
+            inv.InvoiceNumber,
+            inv.InvoiceDate,
+            inv.ClientName,
+            inv.ClientEmail,
+            inv.ClientAddress,
+            inv.PaymentType,
+            inv.ReceivedBy,
+            inv.Notes,
+            inv.Subtotal,
+            inv.Tax,
+            inv.Total,
+            inv.PdfUrl,
+            inv.CreatedAt,
+            inv.ServiceId,
+            inv.Items
+                .OrderBy(it => it.SortOrder)
+                .Select(it => new InvoiceItemViewDto(
+                    it.Id, it.Quantity, it.Description, it.UnitPrice, it.LineTotal, it.SortOrder))
+                .ToList());
+    }
+
     public async Task<Stream> GetPdfStreamAsync(Guid invoiceId, CancellationToken ct = default)
     {
         var inv = await _db.Invoices
@@ -217,7 +298,11 @@ public class InvoiceService : IInvoiceService
             .FirstOrDefaultAsync(i => i.Id == invoiceId, ct)
             ?? throw new Exception("Factura no encontrada.");
 
-        var bytes = await RenderStyledAsync(inv);
+        Workshop? workshop = inv.WorkshopId.HasValue
+            ? await _db.Workshops.AsNoTracking().FirstOrDefaultAsync(w => w.Id == inv.WorkshopId.Value, ct)
+            : null;
+
+        var bytes = await RenderStyledAsync(inv, workshop);
         return new MemoryStream(bytes);
     }
 
@@ -250,9 +335,62 @@ public class InvoiceService : IInvoiceService
         }
     }
 
-    // ========= Layout “pintado” tipo talonario (CORREGIDO) =========
-    private Task<byte[]> RenderStyledAsync(Invoice inv)
+    // ========= Identidad de marca para los documentos =========
+    // Se resuelve desde el perfil del taller (Configuración). Facturas
+    // antiguas sin taller asociado conservan el encabezado legado.
+    private sealed record BrandInfo(string Name, string RucLine, string Description, string ContactLine, byte[]? LogoBytes);
+
+    private async Task<BrandInfo> ResolveBrandAsync(Workshop? ws)
     {
+        if (ws is null)
+        {
+            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var logoPath = Path.Combine(webRoot, "templates", "diogenes_logo.png");
+            byte[]? legacyLogo = System.IO.File.Exists(logoPath)
+                ? await System.IO.File.ReadAllBytesAsync(logoPath)
+                : null;
+
+            return new BrandInfo(
+                "AUTO SERVICIOS DIÓGENES",
+                "R.U.C. 4-246-714  D.V. 18",
+                "Ventas al por menor de partes, piezas accesorios de vehículos y automotores",
+                "Los Anastacios, Urbanización Rincón Largo · Calle Principal, Casa 2X · Cel. 6622-4854",
+                legacyLogo);
+        }
+
+        var rucLine = string.IsNullOrWhiteSpace(ws.Ruc)
+            ? ""
+            : $"R.U.C. {ws.Ruc}" + (string.IsNullOrWhiteSpace(ws.Dv) ? "" : $"  D.V. {ws.Dv}");
+
+        var contactParts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(ws.Address)) contactParts.Add(ws.Address);
+        if (!string.IsNullOrWhiteSpace(ws.Phone)) contactParts.Add($"Tel. {ws.Phone}");
+
+        byte[]? logo = null;
+        if (!string.IsNullOrWhiteSpace(ws.Logo))
+        {
+            try
+            {
+                logo = await _http.GetByteArrayAsync(ws.Logo);
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning(ex, "No se pudo descargar el logo del taller {WorkshopId}", ws.Id);
+            }
+        }
+
+        return new BrandInfo(
+            ws.WorkshopName.ToUpperInvariant(),
+            rucLine,
+            ws.BusinessDescription ?? "",
+            string.Join(" · ", contactParts),
+            logo);
+    }
+
+    // ========= Layout “pintado” tipo talonario (CORREGIDO) =========
+    private async Task<byte[]> RenderStyledAsync(Invoice inv, Workshop? ws)
+    {
+        var brand = await ResolveBrandAsync(ws);
         // Colores
         var Navy = "#1F3B6F"; // azul cabecera / total
         var Navy70 = "#2A4A84";
@@ -291,20 +429,19 @@ public class InvoiceService : IInvoiceService
                     {
                         row.RelativeItem().Row(r =>
                         {
-                            // Logo opcional: wwwroot/templates/diogenes_logo.png
-                            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                            var logoPath = Path.Combine(webRoot, "templates", "diogenes_logo.png");
-                            if (System.IO.File.Exists(logoPath))
-                                r.ConstantItem(64).Height(64).Image(System.IO.File.ReadAllBytes(logoPath)).FitArea();
+                            // Logo del perfil del taller (o legado si no hay taller)
+                            if (brand.LogoBytes is { Length: > 0 })
+                                r.ConstantItem(64).Height(64).Image(brand.LogoBytes).FitArea();
 
                             r.RelativeItem().Column(c =>
                             {
-                                c.Item().Text("AUTO SERVICIOS DIÓGENES").Style(h1);
-                                c.Item().Text("R.U.C. 4-246-714  D.V. 18").SemiBold().FontColor(Navy);
-                                c.Item().Text("Ventas al por menor de partes, piezas accesorios de vehículos y automotores")
-                                    .FontSize(10).FontColor(Navy);
-                                c.Item().Text("Los Anastacios, Urbanización Rincón Largo · Calle Principal, Casa 2X · Cel. 6622-4854")
-                                    .FontSize(10).FontColor(Navy);
+                                c.Item().Text(brand.Name).Style(h1);
+                                if (!string.IsNullOrWhiteSpace(brand.RucLine))
+                                    c.Item().Text(brand.RucLine).SemiBold().FontColor(Navy);
+                                if (!string.IsNullOrWhiteSpace(brand.Description))
+                                    c.Item().Text(brand.Description).FontSize(10).FontColor(Navy);
+                                if (!string.IsNullOrWhiteSpace(brand.ContactLine))
+                                    c.Item().Text(brand.ContactLine).FontSize(10).FontColor(Navy);
                             });
                         });
 
@@ -458,18 +595,31 @@ public class InvoiceService : IInvoiceService
                             });
                         });
                     });
+
+                    // NOTAS para el cliente (opcional)
+                    if (!string.IsNullOrWhiteSpace(inv.Notes))
+                    {
+                        col.Item().PaddingTop(6).Column(c =>
+                        {
+                            c.Item().Text("NOTAS").SemiBold().FontColor(Navy);
+                            c.Item().Border(1).BorderColor(Navy).Padding(8)
+                                .Text(inv.Notes).FontSize(10).FontColor(Ink);
+                        });
+                    }
                 });
             });
         }).GeneratePdf();   // <= devuelve byte[]
 
-        return Task.FromResult(bytes);
+        return bytes;
     }
 
 
 
     // ========= Digital simple (queda por si lo quieres seguir usando) =========
-    private Task<byte[]> RenderDigitalAsync(Invoice inv)
+    private async Task<byte[]> RenderDigitalAsync(Invoice inv, Workshop? ws)
     {
+        var brand = await ResolveBrandAsync(ws);
+
         var bytes = Document.Create(doc =>
         {
             doc.Page(page =>
@@ -481,7 +631,13 @@ public class InvoiceService : IInvoiceService
                 {
                     col.Spacing(8);
 
-                    col.Item().Text("AUTO SERVICIOS DIÓGENES").Bold().FontSize(18);
+                    col.Item().Text(brand.Name).Bold().FontSize(18);
+                    if (!string.IsNullOrWhiteSpace(brand.RucLine))
+                        col.Item().Text(brand.RucLine);
+                    if (!string.IsNullOrWhiteSpace(brand.Description))
+                        col.Item().Text(brand.Description).FontSize(10);
+                    if (!string.IsNullOrWhiteSpace(brand.ContactLine))
+                        col.Item().Text(brand.ContactLine).FontSize(10);
                     col.Item().Text($"Factura N° {inv.InvoiceNumber} · Fecha: {inv.InvoiceDate:dd/MM/yyyy}");
                     col.Item().Text($"Cliente: {inv.ClientName}");
                     if (!string.IsNullOrWhiteSpace(inv.ClientAddress))
@@ -521,21 +677,27 @@ public class InvoiceService : IInvoiceService
                         tot.Item().Text($"I.T.B.M.S: {inv.Tax:0.00}");
                         tot.Item().Text($"TOTAL: {inv.Total:0.00}").Bold();
                     });
+
+                    if (!string.IsNullOrWhiteSpace(inv.Notes))
+                    {
+                        col.Item().Text("NOTAS").Bold();
+                        col.Item().Text(inv.Notes);
+                    }
                 });
             });
         }).GeneratePdf();
 
-        return Task.FromResult(bytes);
+        return bytes;
     }
 
     // ========= (Opcional) con PNG de fondo =========
-    private async Task<byte[]> RenderPreprintedAsync(Invoice inv)
+    private async Task<byte[]> RenderPreprintedAsync(Invoice inv, Workshop? ws)
     {
         var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         var templatePath = Path.Combine(webRoot, "templates", "diogenes_form.png");
 
         if (!System.IO.File.Exists(templatePath))
-            return await RenderStyledAsync(inv); // si no hay imagen, usa el pintado
+            return await RenderStyledAsync(inv, ws); // si no hay imagen, usa el pintado
 
         var bg = await System.IO.File.ReadAllBytesAsync(templatePath);
 
@@ -622,7 +784,7 @@ public class InvoiceService : IInvoiceService
         catch (Exception ex)
         {
             _log.LogError(ex, "QuestPDF falló en RenderPreprintedAsync.");
-            return await RenderStyledAsync(inv);
+            return await RenderStyledAsync(inv, ws);
         }
     }
 

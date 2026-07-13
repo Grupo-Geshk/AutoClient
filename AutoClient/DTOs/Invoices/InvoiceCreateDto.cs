@@ -9,7 +9,8 @@ public record InvoiceCreateDto(
     List<InvoiceItemDto> items,
     decimal taxRate,                  // 0.07
     bool sendEmail,
-    Guid? serviceId                   // opcional
+    Guid? serviceId,                  // opcional
+    string? notes = null              // notas para el cliente (opcional)
 );
 
 public record ClientDto(string name, string email, string address);

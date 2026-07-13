@@ -22,6 +22,43 @@ public class InvoicesController : ControllerBase
         _env = env;
     }
 
+    private Guid? GetWorkshopId()
+    {
+        var claim = User.FindFirst("workshop_id")?.Value;
+        return Guid.TryParse(claim, out var id) ? id : null;
+    }
+
+    // GET /invoices?paymentType=contado|credito&search=
+    [HttpGet]
+    [ProducesResponseType(typeof(List<InvoiceSummaryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<List<InvoiceSummaryDto>>> List(
+        [FromQuery] string? paymentType,
+        [FromQuery] string? search,
+        CancellationToken ct)
+    {
+        var workshopId = GetWorkshopId();
+        if (workshopId == null) return Unauthorized(new { message = "Invalid token." });
+
+        var invoices = await _svc.ListAsync(workshopId.Value, paymentType, search, ct);
+        return Ok(invoices);
+    }
+
+    // GET /invoices/{id}
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(InvoiceDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<InvoiceDetailDto>> Get(Guid id, CancellationToken ct)
+    {
+        var workshopId = GetWorkshopId();
+        if (workshopId == null) return Unauthorized(new { message = "Invalid token." });
+
+        var invoice = await _svc.GetAsync(id, workshopId.Value, ct);
+        if (invoice == null) return NotFound(new { message = "Factura no encontrada." });
+        return Ok(invoice);
+    }
+
     [HttpPost]
     [Consumes("application/json")]
     [ProducesResponseType(typeof(InvoiceResultDto), StatusCodes.Status200OK)]
@@ -40,7 +77,7 @@ public class InvoicesController : ControllerBase
 
         try
         {
-            var res = await _svc.CreateAsync(dto, ct);
+            var res = await _svc.CreateAsync(dto, GetWorkshopId(), ct);
             _logger.LogInformation(
                 "Invoice created successfully. Number: {InvoiceNumber}, Id: {InvoiceId}, PdfUrl: {PdfUrl}",
                 res.number, res.id, res.pdfUrl);
@@ -68,7 +105,7 @@ public class InvoicesController : ControllerBase
 
         try
         {
-            var res = await _svc.CreateFromServiceAsync(serviceId, overrides, ct);
+            var res = await _svc.CreateFromServiceAsync(serviceId, overrides, GetWorkshopId(), ct);
             _logger.LogInformation(
                 "Invoice from service created successfully. ServiceId: {ServiceId}, Number: {InvoiceNumber}, Id: {InvoiceId}",
                 serviceId, res.number, res.id);

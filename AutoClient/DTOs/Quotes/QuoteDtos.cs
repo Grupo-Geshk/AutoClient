@@ -83,6 +83,7 @@ public class PublicQuoteDto
     // Datos públicos del taller para el encabezado del documento
     public string WorkshopName { get; set; } = "";
     public string? WorkshopLogo { get; set; }
+    public string? WorkshopDescription { get; set; }
     public string? WorkshopPhone { get; set; }
     public string? WorkshopAddress { get; set; }
     public string? WorkshopEmail { get; set; }

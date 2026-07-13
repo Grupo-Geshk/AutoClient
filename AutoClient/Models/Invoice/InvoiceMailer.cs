@@ -19,10 +19,16 @@ namespace AutoClient.Services.Email
             if (!sendEmail) return;
             if (string.IsNullOrWhiteSpace(inv.ClientEmail)) return;
 
-            var subject = $"Factura {inv.InvoiceNumber} - Auto Servicios Diógenes";
+            var workshopName = string.IsNullOrWhiteSpace(inv.WorkshopName)
+                ? "Auto Servicios Diógenes"
+                : inv.WorkshopName;
 
-            // Use a public URL for the logo
-            var logoUrl = "https://github.com/Grupo-Geshk/AutoClient-front/blob/main/public/ASD.jpeg?raw=true";
+            var subject = $"Factura {inv.InvoiceNumber} - {workshopName}";
+
+            // Logo del perfil del taller, o el legado si no hay
+            var logoUrl = string.IsNullOrWhiteSpace(inv.WorkshopLogo)
+                ? "https://github.com/Grupo-Geshk/AutoClient-front/blob/main/public/ASD.jpeg?raw=true"
+                : inv.WorkshopLogo;
 
             var htmlBody = BuildHtml(inv, logoUrl);
             var textBody = BuildText(inv);
@@ -39,8 +45,13 @@ namespace AutoClient.Services.Email
                 });
             }
 
-            // Internal BCC copy
-            var bccList = new[] { "autoserviciosdiogenes@gmail.com" };
+            // Copia interna: email de notificaciones del perfil, o el legado
+            var bccList = new[]
+            {
+                string.IsNullOrWhiteSpace(inv.WorkshopNotificationEmail)
+                    ? "autoserviciosdiogenes@gmail.com"
+                    : inv.WorkshopNotificationEmail
+            };
 
             await _emailSender.SendAsync(
                 to: inv.ClientEmail,
@@ -55,8 +66,34 @@ namespace AutoClient.Services.Email
         private static string Money(decimal v)
             => "$ " + v.ToString("N2", CultureInfo.InvariantCulture);
 
+        private static (string Name, string RucLine, string Description) ResolveBrand(InvoiceEmailView inv)
+        {
+            // Sin taller asociado: identidad legada
+            if (string.IsNullOrWhiteSpace(inv.WorkshopName))
+                return (
+                    "AUTO SERVICIOS DIÓGENES",
+                    "R.U.C. 4-248-714 D.V. 18",
+                    "Ventas al por menor de partes, piezas y accesorios de vehículos y automotores");
+
+            var rucLine = string.IsNullOrWhiteSpace(inv.WorkshopRuc)
+                ? ""
+                : $"R.U.C. {inv.WorkshopRuc}" +
+                  (string.IsNullOrWhiteSpace(inv.WorkshopDv) ? "" : $" D.V. {inv.WorkshopDv}");
+
+            return (inv.WorkshopName.ToUpperInvariant(), rucLine, inv.WorkshopDescription ?? "");
+        }
+
         private static string BuildHtml(InvoiceEmailView inv, string logoUrl)
         {
+            var (brandName, rucLine, description) = ResolveBrand(inv);
+            var enc = (string? s) => System.Net.WebUtility.HtmlEncode(s ?? "");
+            var rucHtml = string.IsNullOrWhiteSpace(rucLine)
+                ? ""
+                : $"<div class='muted'>{enc(rucLine)}</div>";
+            var descHtml = string.IsNullOrWhiteSpace(description)
+                ? ""
+                : $"<div class='tiny muted'>{enc(description)}</div>";
+
             var sb = new StringBuilder();
             sb.Append($@"
 <!DOCTYPE html>
@@ -88,9 +125,9 @@ namespace AutoClient.Services.Email
       <div class='row' style='gap:12px;'>
         <img src='{logoUrl}' alt='Logo' style='height:48px; width:48px; object-fit:contain;' />
         <div>
-          <div class='title'>AUTO SERVICIOS DIÓGENES</div>
-          <div class='muted'>R.U.C. 4-248-714 D.V. 18</div>
-          <div class='tiny muted'>Ventas al por menor de partes, piezas y accesorios de vehículos y automotores</div>
+          <div class='title'>{enc(brandName)}</div>
+          {rucHtml}
+          {descHtml}
         </div>
       </div>
 
@@ -175,7 +212,16 @@ namespace AutoClient.Services.Email
           <td class='right' style='font-weight:700;'>{Money(inv.Total)}</td>
         </tr>
       </table>
-    </div>
+    </div>");
+            if (!string.IsNullOrWhiteSpace(inv.Notes))
+            {
+                sb.Append($@"
+    <div style='margin-top:12px; font-size:13px;'>
+      <div style='font-weight:700; margin-bottom:4px;'>NOTAS</div>
+      <div style='border:1px solid #e5e7eb; padding:8px; white-space:pre-wrap;'>{System.Net.WebUtility.HtmlEncode(inv.Notes)}</div>
+    </div>");
+            }
+            sb.Append($@"
 
     <div class='footer'>
       Factura No. {inv.InvoiceNumber} · {inv.Day:00}/{inv.Month:00}/{inv.Year} · {inv.PaymentType?.ToUpperInvariant()}
@@ -188,8 +234,10 @@ namespace AutoClient.Services.Email
 
         private static string BuildText(InvoiceEmailView inv)
         {
+            var (brandName, rucLine, _) = ResolveBrand(inv);
             var sb = new StringBuilder();
-            sb.AppendLine($"AUTO SERVICIOS DIÓGENES");
+            sb.AppendLine(brandName);
+            if (!string.IsNullOrWhiteSpace(rucLine)) sb.AppendLine(rucLine);
             sb.AppendLine($"Factura {inv.InvoiceNumber} - {inv.Day:00}/{inv.Month:00}/{inv.Year}");
             sb.AppendLine($"Cliente: {inv.ClientName}");
             sb.AppendLine($"Dirección: {inv.ClientAddress}");
@@ -204,6 +252,12 @@ namespace AutoClient.Services.Email
             sb.AppendLine($"TOTAL: {Money(inv.Total)}");
             sb.AppendLine();
             sb.AppendLine($"Recibido por: {inv.ReceivedBy}");
+            if (!string.IsNullOrWhiteSpace(inv.Notes))
+            {
+                sb.AppendLine();
+                sb.AppendLine("NOTAS:");
+                sb.AppendLine(inv.Notes);
+            }
             return sb.ToString();
         }
     }

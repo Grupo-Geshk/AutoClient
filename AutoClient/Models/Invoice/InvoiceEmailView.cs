@@ -7,6 +7,14 @@ namespace AutoClient.Services.Email
     /// </summary>
     public sealed class InvoiceEmailView
     {
+        // Identidad del taller emisor (del perfil); null = encabezado legado
+        public string? WorkshopName { get; set; }
+        public string? WorkshopRuc { get; set; }
+        public string? WorkshopDv { get; set; }
+        public string? WorkshopDescription { get; set; }
+        public string? WorkshopLogo { get; set; }
+        public string? WorkshopNotificationEmail { get; set; }
+
         public string? InvoiceNumber { get; set; }
 
         public string? ClientName { get; set; }
@@ -20,6 +28,9 @@ namespace AutoClient.Services.Email
         /// <summary>"contado" | "credito"</summary>
         public string? PaymentType { get; set; }
         public string? ReceivedBy { get; set; }
+
+        /// <summary>Notas para el cliente (opcional).</summary>
+        public string? Notes { get; set; }
 
         /// <summary>0.07m para 7%</summary>
         public decimal TaxRate { get; set; }

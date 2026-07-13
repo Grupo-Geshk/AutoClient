@@ -236,6 +236,7 @@ public class QuotesController : ControllerBase
                 .ToList(),
             WorkshopName = quote.Workshop?.WorkshopName ?? "",
             WorkshopLogo = quote.Workshop?.Logo,
+            WorkshopDescription = quote.Workshop?.BusinessDescription,
             WorkshopPhone = quote.Workshop?.Phone,
             WorkshopAddress = quote.Workshop?.Address,
             WorkshopEmail = quote.Workshop?.Email,

@@ -24,9 +24,30 @@ public class ResendEmailSender : IEmailSender
         _settings = settings.Value;
         _logger = logger;
 
-        _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", _settings.ApiKey);
+        // Este constructor no debe lanzar: una config de correo ausente o mal
+        // formada (env vars vacías en el servidor) tumbaría por DI todos los
+        // endpoints que dependen del mailer (p. ej. todo /invoices). Si algo
+        // falta, el envío falla de forma controlada y queda en los logs.
+        if (!Uri.TryCreate(_settings.BaseUrl, UriKind.Absolute, out var baseUri))
+        {
+            _logger.LogWarning(
+                "Email BaseUrl inválido o vacío ('{BaseUrl}'); usando https://api.resend.com",
+                _settings.BaseUrl);
+            baseUri = new Uri("https://api.resend.com");
+        }
+        _httpClient.BaseAddress = baseUri;
+
+        var apiKey = _settings.ApiKey?.Trim();
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            _logger.LogWarning(
+                "Email ApiKey no configurado (Email__ApiKey); los correos no se enviarán.");
+        }
+        else
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", apiKey);
+        }
     }
 
     public async Task<bool> SendAsync(

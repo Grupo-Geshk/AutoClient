@@ -31,20 +31,30 @@ builder.Services.AddControllers()
     .AddFluentValidation(cfg => cfg.RegisterValidatorsFromAssemblyContaining<Program>());
 
 // ---------- Resend Email Configuration ----------
+// Las env vars vacías cuentan como ausentes: una Email__BaseUrl definida pero
+// en blanco no debe pisar el valor por defecto (rompería el mailer por DI).
+static string? EnvOrNull(string name)
+{
+    var value = Environment.GetEnvironmentVariable(name);
+    return string.IsNullOrWhiteSpace(value) ? null : value;
+}
+
 builder.Services.Configure<ResendEmailSettings>(options =>
 {
     var emailSection = builder.Configuration.GetSection("Email");
-    options.ApiKey = Environment.GetEnvironmentVariable("Email__ApiKey")
-        ?? emailSection["ApiKey"]
+    static string? OrNull(string? v) => string.IsNullOrWhiteSpace(v) ? null : v;
+
+    options.ApiKey = EnvOrNull("Email__ApiKey")
+        ?? OrNull(emailSection["ApiKey"])
         ?? "";
-    options.BaseUrl = Environment.GetEnvironmentVariable("Email__BaseUrl")
-        ?? emailSection["BaseUrl"]
+    options.BaseUrl = EnvOrNull("Email__BaseUrl")
+        ?? OrNull(emailSection["BaseUrl"])
         ?? "https://api.resend.com";
-    options.FromAddress = Environment.GetEnvironmentVariable("Email__FromAddress")
-        ?? emailSection["FromAddress"]
+    options.FromAddress = EnvOrNull("Email__FromAddress")
+        ?? OrNull(emailSection["FromAddress"])
         ?? "";
-    options.FromName = Environment.GetEnvironmentVariable("Email__FromName")
-        ?? emailSection["FromName"]
+    options.FromName = EnvOrNull("Email__FromName")
+        ?? OrNull(emailSection["FromName"])
         ?? "AutoClient";
 });
 

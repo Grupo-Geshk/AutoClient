@@ -27,9 +27,14 @@ public class InvoiceService : IInvoiceService
         _env = env;
         _log = log;
         _mailer = mailer;
-
-        QuestPDF.Settings.License = LicenseType.Community;
+        // OJO: nada de QuestPDF aquí. Tocar QuestPDF.Settings dispara la carga
+        // de libSkiaSharp; si las dependencias nativas faltan, la excepción en
+        // el constructor tumba por DI todos los endpoints de /invoices.
     }
+
+    // El licenciamiento se resuelve al primer render, no al construir el servicio
+    private static void EnsureQuestPdfLicense()
+        => QuestPDF.Settings.License = LicenseType.Community;
 
     // Cliente compartido para descargar el logo del taller al generar PDFs
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
@@ -136,26 +141,36 @@ public class InvoiceService : IInvoiceService
         _db.Invoices.Add(inv);
         await _db.SaveChangesAsync(ct);
 
-        // 4) PDF: respetar el template solicitado
-        byte[] pdfBytes = (dto.template ?? "styled").ToLowerInvariant() switch
+        // 4-5) PDF del servidor: best-effort. La factura ya quedó guardada; si
+        // el render falla (p. ej. dependencias nativas de SkiaSharp ausentes)
+        // solo se pierde el archivo/adjunto — el front genera su propio PDF.
+        byte[]? pdfBytes = null;
+        try
         {
-            "preprinted" => await RenderPreprintedAsync(inv, workshop),
-            "digital" => await RenderDigitalAsync(inv, workshop),
-            _ => await RenderStyledAsync(inv, workshop) // "styled" por defecto
-        };
+            pdfBytes = (dto.template ?? "styled").ToLowerInvariant() switch
+            {
+                "preprinted" => await RenderPreprintedAsync(inv, workshop),
+                "digital" => await RenderDigitalAsync(inv, workshop),
+                _ => await RenderStyledAsync(inv, workshop) // "styled" por defecto
+            };
 
+            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(webRoot, "invoices");
+            Directory.CreateDirectory(folder);
 
-        // 5) Guardar archivo
-        var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        var folder = Path.Combine(webRoot, "invoices");
-        Directory.CreateDirectory(folder);
+            var fileName = $"invoice_{inv.InvoiceNumber}.pdf";
+            var path = Path.Combine(folder, fileName);
+            await File.WriteAllBytesAsync(path, pdfBytes, ct);
 
-        var fileName = $"invoice_{inv.InvoiceNumber}.pdf";
-        var path = Path.Combine(folder, fileName);
-        await File.WriteAllBytesAsync(path, pdfBytes, ct);
-
-        inv.PdfUrl = $"/invoices/{fileName}";
-        await _db.SaveChangesAsync(ct);
+            inv.PdfUrl = $"/invoices/{fileName}";
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex,
+                "No se pudo generar el PDF de la factura {InvoiceNumber}; la factura queda guardada sin PDF del servidor.",
+                inv.InvoiceNumber);
+        }
 
         // 6) Email opcional
         if (dto.sendEmail)
@@ -204,7 +219,7 @@ public class InvoiceService : IInvoiceService
                         Total = inv.Total
                     };
 
-                    await _mailer.SendAsync(vm, pdfBytes, true, ct);
+                    await _mailer.SendAsync(vm, pdfBytes ?? Array.Empty<byte>(), true, ct);
                     _log.LogInformation(
                         "Invoice email sent successfully. InvoiceNumber: {InvoiceNumber}, Recipient: {ClientEmail}",
                         inv.InvoiceNumber, inv.ClientEmail);
@@ -390,6 +405,7 @@ public class InvoiceService : IInvoiceService
     // ========= Layout “pintado” tipo talonario (CORREGIDO) =========
     private async Task<byte[]> RenderStyledAsync(Invoice inv, Workshop? ws)
     {
+        EnsureQuestPdfLicense();
         var brand = await ResolveBrandAsync(ws);
         // Colores
         var Navy = "#1F3B6F"; // azul cabecera / total
@@ -618,6 +634,7 @@ public class InvoiceService : IInvoiceService
     // ========= Digital simple (queda por si lo quieres seguir usando) =========
     private async Task<byte[]> RenderDigitalAsync(Invoice inv, Workshop? ws)
     {
+        EnsureQuestPdfLicense();
         var brand = await ResolveBrandAsync(ws);
 
         var bytes = Document.Create(doc =>
@@ -693,6 +710,7 @@ public class InvoiceService : IInvoiceService
     // ========= (Opcional) con PNG de fondo =========
     private async Task<byte[]> RenderPreprintedAsync(Invoice inv, Workshop? ws)
     {
+        EnsureQuestPdfLicense();
         var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         var templatePath = Path.Combine(webRoot, "templates", "diogenes_form.png");
 

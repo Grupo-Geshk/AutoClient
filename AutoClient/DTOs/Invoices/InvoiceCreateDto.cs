@@ -10,7 +10,8 @@ public record InvoiceCreateDto(
     decimal taxRate,                  // 0.07
     bool sendEmail,
     Guid? serviceId,                  // opcional
-    string? notes = null              // notas para el cliente (opcional)
+    string? notes = null,             // notas para el cliente (opcional)
+    long? invoiceNumber = null        // número elegido por el usuario; null = correlativo automático
 );
 
 public record ClientDto(string name, string email, string address);

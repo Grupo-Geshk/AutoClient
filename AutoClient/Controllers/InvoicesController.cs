@@ -83,6 +83,11 @@ public class InvoicesController : ControllerBase
                 res.number, res.id, res.pdfUrl);
             return Ok(res);
         }
+        catch (InvalidOperationException ex)
+        {
+            // Validación de negocio (p. ej. número de factura duplicado)
+            return BadRequest(new { message = ex.Message });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creando factura");
@@ -110,6 +115,10 @@ public class InvoicesController : ControllerBase
                 "Invoice from service created successfully. ServiceId: {ServiceId}, Number: {InvoiceNumber}, Id: {InvoiceId}",
                 serviceId, res.number, res.id);
             return Ok(res);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {

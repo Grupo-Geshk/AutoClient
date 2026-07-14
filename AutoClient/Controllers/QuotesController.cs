@@ -92,15 +92,29 @@ public class QuotesController : ControllerBase
         if (dto.TaxRate is < 0 or > 100)
             return BadRequest(new { message = "Tasa de impuesto inválida." });
 
-        var nextNumber = await _context.Quotes
-            .Where(q => q.WorkshopId == workshopId.Value)
-            .Select(q => (long?)q.QuoteNumber)
-            .MaxAsync() ?? 0;
+        // Número elegido por el usuario, o correlativo automático si viene vacío
+        long quoteNumber;
+        if (dto.QuoteNumber is > 0)
+        {
+            var exists = await _context.Quotes.AnyAsync(q =>
+                q.WorkshopId == workshopId.Value && q.QuoteNumber == dto.QuoteNumber.Value);
+            if (exists)
+                return Conflict(new { message = $"Ya existe una cotización N.º {dto.QuoteNumber}." });
+            quoteNumber = dto.QuoteNumber.Value;
+        }
+        else
+        {
+            var nextNumber = await _context.Quotes
+                .Where(q => q.WorkshopId == workshopId.Value)
+                .Select(q => (long?)q.QuoteNumber)
+                .MaxAsync() ?? 0;
+            quoteNumber = nextNumber + 1;
+        }
 
         var quote = new Quote
         {
             WorkshopId = workshopId.Value,
-            QuoteNumber = nextNumber + 1,
+            QuoteNumber = quoteNumber,
             QuoteDate = DateOnly.FromDateTime(DateTime.UtcNow),
             ValidUntil = dto.ValidUntil,
             ClientName = dto.ClientName.Trim(),
@@ -142,6 +156,18 @@ public class QuotesController : ControllerBase
             return BadRequest(new { message = "Todos los ítems requieren descripción, cantidad positiva y precio válido." });
         if (dto.TaxRate is < 0 or > 100)
             return BadRequest(new { message = "Tasa de impuesto inválida." });
+
+        // Permitir cambiar el número, validando que no choque con otra cotización
+        if (dto.QuoteNumber is > 0 && dto.QuoteNumber.Value != quote.QuoteNumber)
+        {
+            var exists = await _context.Quotes.AnyAsync(q =>
+                q.WorkshopId == workshopId.Value &&
+                q.QuoteNumber == dto.QuoteNumber.Value &&
+                q.Id != id);
+            if (exists)
+                return Conflict(new { message = $"Ya existe una cotización N.º {dto.QuoteNumber}." });
+            quote.QuoteNumber = dto.QuoteNumber.Value;
+        }
 
         quote.ClientName = dto.ClientName.Trim();
         quote.ClientEmail = dto.ClientEmail?.Trim() ?? "";

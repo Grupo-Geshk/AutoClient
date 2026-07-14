@@ -9,6 +9,8 @@ public class QuoteItemInputDto
 
 public class QuoteCreateDto
 {
+    /// <summary>Número elegido por el usuario; null = correlativo automático.</summary>
+    public long? QuoteNumber { get; set; }
     public string ClientName { get; set; } = "";
     public string? ClientEmail { get; set; }
     public string? ClientPhone { get; set; }

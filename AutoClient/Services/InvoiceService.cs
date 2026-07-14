@@ -98,8 +98,21 @@ public class InvoiceService : IInvoiceService
             ? await _db.Workshops.AsNoTracking().FirstOrDefaultAsync(w => w.Id == workshopId.Value, ct)
             : null;
 
-        // 1) correlativo
-        var nextNumber = await NextInvoiceNumberAsync(ct);
+        // 1) número elegido por el usuario, o correlativo automático si viene vacío
+        long nextNumber;
+        if (dto.invoiceNumber is > 0)
+        {
+            var exists = await _db.Invoices.AnyAsync(i =>
+                i.InvoiceNumber == dto.invoiceNumber.Value &&
+                (i.WorkshopId == workshopId || i.WorkshopId == null), ct);
+            if (exists)
+                throw new InvalidOperationException($"Ya existe una factura N.º {dto.invoiceNumber}.");
+            nextNumber = dto.invoiceNumber.Value;
+        }
+        else
+        {
+            nextNumber = await NextInvoiceNumberAsync(ct);
+        }
 
         // 2) map Header
         var date = new DateOnly(dto.date.year, dto.date.month, dto.date.day);
